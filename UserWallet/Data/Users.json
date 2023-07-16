@@ -1,0 +1,1 @@
+[{"Id":1,"Username":"Admin","Password":"1234","Role":"Admin","Balances":{}},{"Id":2,"Username":"maxim","Password":"123456","Role":"User","Balances":{"rub":10000,"btc":150}},{"Id":3,"Username":"MAXIM","Password":"1234","Role":"User","Balances":{"btc":183,"rub":50.5}},{"Id":4,"Username":"julia","Password":"12345","Role":"User","Balances":{}}]

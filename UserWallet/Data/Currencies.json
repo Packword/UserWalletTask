@@ -1,0 +1,10 @@
+[
+    {
+        "Id": "btc",
+        "Type": "Crypto"
+    },
+    {
+        "Id": "rub",
+        "Type": "Fiat"
+    }
+]
