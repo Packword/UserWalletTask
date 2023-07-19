@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using System.Text.Json;
 using UserWallet.Models;
 using UserWallet.OptionsModels;
@@ -8,28 +10,23 @@ namespace UserWallet.Services
     public class ExchangeRateGenerator : IHostedService
     {
         private readonly IOptionsMonitor<ExchangeRateOptions> _config;
+        IDbContextFactory<ApplicationDbContext> _contextFactory;
         private Dictionary<string, decimal> currentRates = new Dictionary<string, decimal>();
         private List<Currency>? currencies;
-        private int counter = 0;
 
-        public ExchangeRateGenerator(IOptionsMonitor<ExchangeRateOptions> config)
+        public ExchangeRateGenerator(IOptionsMonitor<ExchangeRateOptions> config, IDbContextFactory<ApplicationDbContext> contextFactory)
         {
+            _contextFactory = contextFactory;
             _config = config;
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            try
-            {
-                using (FileStream fs = new FileStream("./Data/Currencies.json", FileMode.Open))
-                {
-                    currencies = JsonSerializer.Deserialize<List<Currency>>(fs);
-                }
-            }
-            catch (Exception e)
-            {
-                throw new FileLoadException("\n Ошибка при чтении файла\n" + e.Message);
-            }
             Random rnd = new Random();
+            using (var context = _contextFactory.CreateDbContext())
+            {
+                currencies = context.Currencies.ToList();
+            }
+
             foreach(var currency in currencies)
             {
                 currentRates.Add(currency.Id, rnd.Next(80, 120));

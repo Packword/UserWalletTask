@@ -1,10 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using UserWallet.DTOs;
-using UserWallet.Interfaces;
-using UserWallet.Models;
-using UserWallet.Services;
 
 namespace UserWallet.Controllers
 {
@@ -14,19 +10,32 @@ namespace UserWallet.Controllers
     {
         private readonly ExchangeRateGenerator _exchangeRateGenerator;
         private readonly IUserService _userService;
+        private readonly IConvertToUsdService _convertToUsdService;
+        private readonly IDepositFiatService _depositFiatService;
+        private readonly IDepositCryptoService _depositCryptoService;
+        private readonly ITransactionService _transactionService;
+
         private readonly List<Currency>? currencies;
         private HashSet<string> availableCurrencies = new HashSet<string>();
-        public WalletController(ExchangeRateGenerator exchangeRateGenerator, IUserService userService)
+
+        public WalletController(ExchangeRateGenerator exchangeRateGenerator, 
+                                IUserService userService,
+                                IConvertToUsdService convertToUsdService,
+                                IDepositFiatService depositFiatService,
+                                IDepositCryptoService depositCryptoService,
+                                ITransactionService transactionService)
         {
             _exchangeRateGenerator = exchangeRateGenerator;
             _userService = userService;
+            _convertToUsdService = convertToUsdService;
+            _depositFiatService = depositFiatService;
+            _depositCryptoService = depositCryptoService;
+            _transactionService = transactionService;
             currencies = _exchangeRateGenerator.GetCurrencies();
             foreach (var currency in currencies)
             {
-                if (availableCurrencies.Contains(currency.Id))
-                    throw new FileLoadException("Wrong currency file");
-
-                availableCurrencies.Add(currency.Id);
+                if (currency.IsAvailable)
+                    availableCurrencies.Add(currency.Id);
             }
         }
 
@@ -34,9 +43,17 @@ namespace UserWallet.Controllers
         [Authorize(Roles = "User")]
         public IActionResult GetCurrentUserBalances()
         {
-            User? user = _userService.GetUserById(int.Parse(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value));
-            Dictionary<string, BalanceDTO>? result = GenerateUserBalance(user);
+            User? user = _userService.GetUserById(GetCurrentUserId());
+            Dictionary<string, BalanceDTO>? result = _convertToUsdService.GenerateUserBalance(user);
             return Ok(result);
+        }
+
+        [HttpGet("tx")]
+        [Authorize(Roles = "User")]
+        public List<Deposit>? GetUserTransactions()
+        {
+            int id = GetCurrentUserId();
+            return _transactionService.GetUserDeposits(id);
         }
 
         [HttpGet("{id}")]
@@ -46,13 +63,13 @@ namespace UserWallet.Controllers
             User? user = _userService.GetUserById(id);
             if (user is null)
                 return NotFound();
-            Dictionary<string, BalanceDTO> result = GenerateUserBalance(user);
+            Dictionary<string, BalanceDTO> result = _convertToUsdService.GenerateUserBalance(user);
             return Ok(result);
         }
 
         [HttpPut("deposit/{currency}")]
         [Authorize(Roles = "User")]
-        public IActionResult Deposit(string currency, [FromBody] DepositDTO depositDTO)
+        public IActionResult CreateDeposit(string currency, [FromBody] DepositDTO depositDTO)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
@@ -61,34 +78,29 @@ namespace UserWallet.Controllers
                 return BadRequest();
 
             Currency curr = currencies.First(c => Equals(c.Id, currency));
-            if(Equals(curr.Type, "Fiat"))
+            bool result;
+            switch (curr.Type)
             {
-                if (depositDTO.Cardholder_name is null || depositDTO.Card_number is null)
-                    return BadRequest();
+                case "Fiat":
+                    result = _depositFiatService.CreateDeposit(depositDTO, GetCurrentUserId(), curr.Id);
+                    break;
+                case "Crypto":
+                    result = _depositCryptoService.CreateDeposit(depositDTO, GetCurrentUserId(), curr.Id);
+                    break;
+                default:
+                    result = false;
+                    break;
             }
-            else if (Equals(curr.Type, "Crypto"))
-            {
-                if (depositDTO.Address is null)
-                    return BadRequest();
-            }
-            else
+            if (!result)
                 return BadRequest();
 
-            _userService.AddBalance(int.Parse(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value), currency, depositDTO.Amount);
             return Ok();
 
         }
 
-        private Dictionary<string, BalanceDTO> GenerateUserBalance(User? user)
+        private int GetCurrentUserId()
         {
-            var rates = _exchangeRateGenerator.GetCurrentRates();
-            Dictionary<string, BalanceDTO>? result = new Dictionary<string, BalanceDTO>();
-            foreach (string key in user.Balances.Keys)
-            {
-                result.Add(key, new BalanceDTO { Balance = user.Balances[key], Usd_Amount = rates[key] * user.Balances[key] });
-            }
-
-            return result;
+            return int.Parse(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         }
     }
 }

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using UserWallet.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 using UserWallet.OptionsModels;
-using UserWallet.Services;
 
 namespace UserWallet
 {
@@ -10,12 +10,35 @@ namespace UserWallet
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            ConfigureServices(builder.Services, builder.Configuration);
+            
+            var app = builder.Build();
+            using (var scope = app.Services.CreateScope())
+            {
+                SeedDataFromJson.Initialize(scope.ServiceProvider);
+            }
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
 
+            app.UseAuthentication();
+            app.UseAuthorization();
 
-            builder.Services.Configure<ExchangeRateOptions>(builder.Configuration.GetSection("ExchangeRate"));
+            app.MapControllers();
 
-            builder.Services.AddControllers();
-            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(
+            app.Run();
+        }
+
+        private static void ConfigureServices(IServiceCollection services, ConfigurationManager configuration)
+        {
+            services.Configure<ExchangeRateOptions>(configuration.GetSection("ExchangeRate"));
+
+            services.AddControllers().AddJsonOptions(options =>
+                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles
+            );
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(
            o =>
            {
                o.Events.OnRedirectToLogin = context =>
@@ -29,31 +52,18 @@ namespace UserWallet
                    return Task.CompletedTask;
                };
            });
-            builder.Services.AddAuthorization();
-            builder.Services.AddSingleton<IUserService, UserService>();
-            builder.Services.AddSingleton<IAuthService, AuthService>();
-            builder.Services.AddSingleton<ExchangeRateGenerator>();
-            builder.Services.AddSingleton<IHostedService>(p => p.GetRequiredService<ExchangeRateGenerator>());
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-
-
-            var app = builder.Build();
-
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
-
-            app.UseHttpsRedirection();
-            app.UseAuthentication();
-            app.UseAuthorization();
-
-
-            app.MapControllers();
-
-            app.Run();
+            services.AddAuthorization();
+            services.AddScoped<IConvertToUsdService, ConvertToUsdService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ITransactionService, TransactionService>();
+            services.AddScoped<IDepositFiatService, DepositFiatService>();
+            services.AddScoped<IDepositCryptoService, DepositCryptoService>();
+            services.AddSingleton<ExchangeRateGenerator>();
+            services.AddSingleton<IHostedService, ExchangeRateGenerator>(serviceProvider => serviceProvider.GetRequiredService<ExchangeRateGenerator>());
+            services.AddDbContextFactory<ApplicationDbContext>(options =>
+                options.UseNpgsql(configuration.GetConnectionString("ApplicationDbContext")));
+            services.AddEndpointsApiExplorer();
+            services.AddSwaggerGen();
         }
     }
 }

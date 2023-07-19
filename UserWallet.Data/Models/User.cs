@@ -1,20 +1,26 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UserWallet.Models
 {
     public class User
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         [StringLength(8, MinimumLength = 4)]
-        public string? Username { get; set; }
+        public string Username { get; set; }
 
         [StringLength(8, MinimumLength = 4)]
-        public string? Password { get; set; }
+        public string Password { get; set; }
 
         [StringRange(AllowableValues = new[] {"Admin", "User"})]
-        public string? Role { get; set; }
-        public Dictionary<string, decimal> Balances { get; set; } = new Dictionary<string, decimal>();
+        public string Role { get; set; }
+        public bool IsBlocked { get; set; } = false;
+        public ICollection<UserBalance> Balances { get; set; }
+        public ICollection<Deposit> Deposits { get; set; }
+
 
         public class StringRangeAttribute : ValidationAttribute
         {

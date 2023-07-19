@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using UserWallet.DTOs;
 using UserWallet.Interfaces;
 using UserWallet.Models;
@@ -13,21 +14,10 @@ namespace UserWallet.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService _authService;
         private readonly IUserService _userService;
-        public AuthController(IAuthService authService, IUserService userService)
+        public AuthController(IUserService userService)
         {
-            _authService = authService;
             _userService = userService;
-        }
-
-        [HttpGet]
-        public IActionResult Get()
-        {
-            List<User>? users = _userService.GetUsers();
-            if (users is not null)
-                return Ok(users);
-            return NotFound();
         }
 
         [HttpPost("sign-up")]
@@ -50,12 +40,22 @@ namespace UserWallet.Controllers
                 return BadRequest("Wrong length of Username or Password");
 
             User? user = _userService.GetUserByNameAndPassword(userDto.Username, userDto.Password);
-            bool res = await _authService.Login(user, HttpContext);
-            if (!res)
+            if (user is null)
                 return Unauthorized();
 
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Role, user.Role),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+            };
+            ClaimsIdentity identity = new ClaimsIdentity(claims, "Cookies");
+            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            
             return Ok();
         }
+
         [Authorize]
         [HttpPost("logout")]
         async public Task<IActionResult> Logout()
