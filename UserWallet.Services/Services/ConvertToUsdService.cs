@@ -15,7 +15,7 @@
             Dictionary<string, BalanceDTO>? result = new Dictionary<string, BalanceDTO>();
             foreach (UserBalance balance in user.Balances)
             {
-                result.Add(balance.CurrencyId, new BalanceDTO { Balance = balance.Amount, Usd_Amount = rates[balance.CurrencyId] * balance.Amount });
+                result.Add(balance.CurrencyId, new BalanceDTO { Balance = balance.Amount, UsdAmount = rates[balance.CurrencyId] * balance.Amount });
             }
 
             return result;

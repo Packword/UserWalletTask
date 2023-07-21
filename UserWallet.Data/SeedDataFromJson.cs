@@ -7,66 +7,87 @@ namespace UserWallet.Data
 {
     public static class SeedDataFromJson
     {
+        private const string CURRENCIES_JSON_PATH = "./../UserWallet.Data/Data/Currencies.json";
+        private const string USERS_JSON_PATH = "./../UserWallet.Data/Data/Users.json";
+
         public static void Initialize(IServiceProvider serviceProvider)
         {
             using var context = new ApplicationDbContext(serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
             
-            using (var fs = new FileStream("./../UserWallet.Data/Data/Currencies.json", FileMode.Open))
-            {
-                List<TmpCurrency>? tmpCurrencies = JsonSerializer.Deserialize<List<TmpCurrency>>(fs);
-                List<Currency> oldCurrencies = context.Currencies.ToList();
-                foreach (var oldCurr in oldCurrencies)
-                    oldCurr.IsAvailable = false;
+            using (var fs = new FileStream(CURRENCIES_JSON_PATH, FileMode.Open))
+                MigrateCurrenciesFromJsonToDb(context, fs);
 
-                foreach(var tmpCurr in tmpCurrencies)
-                {
-                    var sameCurrency = oldCurrencies.FirstOrDefault(c => c.Id == tmpCurr.Id);
-                    if (sameCurrency is null)
-                    {
-                        context.Currencies.Add(new Currency
-                        {
-                            Id = tmpCurr.Id,
-                            Type = tmpCurr.Type,
-                            IsAvailable = true
-                        });
-                    }
-                    else
-                        sameCurrency.IsAvailable = true;
-                }
-            }
             if (context.Users.Any())
-            {
                 context.SaveChanges();
-                return;
-            }
-            using (var fs = new FileStream("./../UserWallet.Data/Data/Users.json", FileMode.Open))
+            else
             {
-                List<TmpUser> tmpUsers = JsonSerializer.Deserialize<List<TmpUser>>(fs);
-                foreach (TmpUser tmpUser in tmpUsers)
-                {
-                    User user = new User
-                    {
-                        Username = tmpUser.Username,
-                        Password = tmpUser.Password,
-                        Role = tmpUser.Role,
-                        IsBlocked = false
-                    };
-                    user.Balances = new List<UserBalance>();
-                    foreach (var key in tmpUser.Balances.Keys)
-                    {
-                        UserBalance userBalance = new UserBalance
-                        {
-                            UserId = user.Id,
-                            CurrencyId = key,
-                            Amount = tmpUser.Balances[key]
-                        };
-                        user.Balances.Add(userBalance);
-                        context.UserBalances.Add(userBalance);
-                    }
-                    context.Users.Add(user);
-                }
+                using var fs = new FileStream(USERS_JSON_PATH, FileMode.Open);
+                MigrateUsersFromJsonToDb(context, fs);
+                context.SaveChanges();
             }
-            context.SaveChanges();
+        }
+
+        private static void MigrateUsersFromJsonToDb(ApplicationDbContext context, FileStream fs)
+        {
+            List<TmpUser> tmpUsers = JsonSerializer.Deserialize<List<TmpUser>>(fs);
+            foreach (TmpUser tmpUser in tmpUsers)
+                ParseJsonUserAndAddToDb(context, tmpUser);
+        }
+
+        private static void ParseJsonUserAndAddToDb(ApplicationDbContext context, TmpUser tmpUser)
+        {
+            User user = new User
+            {
+                Username = tmpUser.Username,
+                Password = tmpUser.Password,
+                Role = tmpUser.Role,
+                IsBlocked = false
+            };
+            ParseUserBalancesAndAddToDb(context, tmpUser, user);
+            context.Users.Add(user);
+        }
+
+        private static void ParseUserBalancesAndAddToDb(ApplicationDbContext context, TmpUser tmpUser, User user)
+        {
+            user.Balances = new List<UserBalance>();
+            foreach (var key in tmpUser.Balances.Keys)
+            {
+                UserBalance userBalance = new UserBalance
+                {
+                    UserId = user.Id,
+                    CurrencyId = key,
+                    Amount = tmpUser.Balances[key]
+                };
+                context.UserBalances.Add(userBalance);
+            }
+        }
+
+        private static void MigrateCurrenciesFromJsonToDb(ApplicationDbContext context, FileStream fs)
+        {
+            List<TmpCurrency>? tmpCurrencies = JsonSerializer.Deserialize<List<TmpCurrency>>(fs);
+            List<Currency> oldCurrencies = context.Currencies.ToList();
+            foreach (var oldCurr in oldCurrencies)
+                oldCurr.IsAvailable = false;
+
+            foreach (var tmpCurr in tmpCurrencies)
+            {
+                var sameCurrency = oldCurrencies.FirstOrDefault(c => c.Id == tmpCurr.Id);
+
+                if (sameCurrency is null)
+                    AddNewCurrencyToDb(context, tmpCurr);
+                else
+                    sameCurrency.IsAvailable = true;
+            }
+        }
+
+        private static void AddNewCurrencyToDb(ApplicationDbContext context, TmpCurrency tmpCurr)
+        {
+            context.Currencies.Add(new Currency
+            {
+                Id = tmpCurr.Id,
+                Type = tmpCurr.Type,
+                IsAvailable = true
+            });
         }
 
         private class TmpUser

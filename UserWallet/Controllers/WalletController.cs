@@ -41,11 +41,11 @@ namespace UserWallet.Controllers
 
         [HttpGet("balance")]
         [Authorize(Roles = "User")]
-        public IActionResult GetCurrentUserBalances()
+        public Dictionary<string, BalanceDTO>? GetCurrentUserBalances()
         {
             User? user = _userService.GetUserById(GetCurrentUserId());
             Dictionary<string, BalanceDTO>? result = _convertToUsdService.GenerateUserBalance(user);
-            return Ok(result);
+            return result;
         }
 
         [HttpGet("tx")]

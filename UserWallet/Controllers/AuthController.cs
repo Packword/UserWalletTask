@@ -21,24 +21,21 @@ namespace UserWallet.Controllers
         }
 
         [HttpPost("sign-up")]
-        public IActionResult Add([FromQuery] UserDTO userDto)
+        public IActionResult Add([FromBody] AddUserDTO userDto)
         {
             if(!ModelState.IsValid)
-                return BadRequest("Wrong length of Username or password");
+                return BadRequest();
 
-            var res = _userService.AddUser(userDto.Username, userDto.Password);
-            if (!res.result)
-                return BadRequest(res.msg);
+            var result = _userService.AddUser(userDto.Username, userDto.Password);
+            if (!result)
+                return BadRequest();
 
             return Ok();
         }
 
         [HttpPost("login")]
-        async public Task<IActionResult> Login([FromQuery] UserDTO userDto)
+        async public Task<IActionResult> Login([FromBody] UserDTO userDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest("Wrong length of Username or Password");
-
             User? user = _userService.GetUserByNameAndPassword(userDto.Username, userDto.Password);
             if (user is null)
                 return Unauthorized();
@@ -69,10 +66,7 @@ namespace UserWallet.Controllers
         public IActionResult ChangePassword(string newPassword)
         {
             if(!ModelState.IsValid)
-                return BadRequest("Wrong length of Username or Password");
-
-            if (newPassword.Length < 4 || newPassword.Length > 8)
-                return BadRequest("New password is not valid");
+                return BadRequest();
 
             _userService.ChangePassword(newPassword, HttpContext);
             return Ok();

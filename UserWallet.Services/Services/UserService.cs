@@ -41,11 +41,11 @@ namespace UserWallet.Services
             return true;
         }
 
-        public (bool result, string msg) AddUser(string userName, string password)
+        public bool AddUser(string userName, string password)
         {
 
-            if (GetUserByNameAndPassword(userName, password) is not null)
-                return (false, "A user with this username and password already exists");
+            if (_db.Users.FirstOrDefault(u => Equals(u.Username, userName)) is not null)
+                return false;
 
             User user = new User()
             {
@@ -58,7 +58,7 @@ namespace UserWallet.Services
             _db.Users.Add(user);
             _db.SaveChanges();
 
-            return (true, "");
+            return true;
         }
 
         public void ChangePassword(string newPassword, HttpContext context)

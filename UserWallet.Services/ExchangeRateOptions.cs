@@ -2,6 +2,6 @@
 {
     public class ExchangeRateOptions
     {
-        public int ChangeTime { get; set; }
+        public int UpdateInterval { get; set; }
     }
 }
