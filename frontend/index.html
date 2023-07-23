@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Info</title>
+    <link rel="stylesheet" href="./index.css">
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="header-left-side">
+            <input id="login" type="text" placeholder="Login..."/>
+            <input id="password" type="text" placeholder="Password...">
+            <button id="sign-in">Войти</button>
+        </div>
+    </header>
+    <div class="content">
+        <table id="user-table">
+
+        </table>
+    </div>
+
+    <script>
+        const baseUrl = "http://localhost:5140";
+        $('#sign-in').click(function() {
+            let login = $('#login').val();
+            let password = $('#password').val();
+            let requestBody = JSON.stringify({username: login, password: password});
+            $.post({
+                url: `${baseUrl}/Auth/login`,
+                data: requestBody,
+                success: (res) => {
+                    if(res.role === "Admin") {
+                        getUsers();
+                    }
+                    else{
+                        getBalances();
+                    }
+                },
+                dataType: 'json',
+                crossDomain: true,
+                xhrFields: {
+                    withCredentials: true
+                },
+                contentType : "application/json"
+            });
+        });
+        function getBalances(){
+            $.get({
+                url: `${baseUrl}/wallet/balance`,
+                success: (data) => {
+                    console.log(data);
+                    generateBalanceTable(data);
+                },
+                contentType: "application/json",
+                crossDomain: true,
+                xhrFields: {
+                    withCredentials: true
+                }
+            })
+        }
+        function getUsers(){
+            $.get({
+                url: `${baseUrl}/admin/users`,
+                success: (data) => {
+                    generateUserTable(data);
+                },
+                contentType: "application/json",
+                crossDomain: true,
+                xhrFields: {
+                    withCredentials: true
+                }
+            })
+        }
+        function generateBalanceTable(data){
+            let table = initBalanceTable();
+            Object.entries(data).forEach(([key, value]) => {
+                fillBalanceTableRow(table, key, value);
+            })
+        }
+        function generateUserTable(data){
+            let table = initUserTable();
+            data.forEach((item, i) => {
+                fillUserTableRow(table, item)
+            });
+        }
+        function initBalanceTable(){
+            var table = document.getElementById("user-table");
+            $('tr', table).slice(0).remove();
+            var row = table.insertRow();
+            var cell1 = row.insertCell();
+            $(cell1).text("Currency");
+            var cell2 = row.insertCell();
+            $(cell2).text("Amount");
+            var cell3 = row.insertCell();
+            $(cell3).text("Usd_Amount");
+            return table;
+        }
+        function initUserTable(){
+            var table = document.getElementById("user-table");
+            $('tr', table).slice(0).remove();
+            var row = table.insertRow();
+            var cell1 = row.insertCell();
+            $(cell1).text("Id");
+            var cell2 = row.insertCell();
+            $(cell2).text("UserName");
+            var cell3 = row.insertCell();
+            $(cell3).text("Password");
+            var cell4 = row.insertCell();
+            $(cell4).text("Role");
+            var cell5 = row.insertCell();
+            $(cell5).text("IsBlocked");
+            return table;
+        }
+        function fillUserTableRow(table, user){
+            var row = table.insertRow();
+            var cell1 = row.insertCell();
+            $(cell1).text(user.id);
+            var cell2 = row.insertCell();
+            $(cell2).text(user.username);
+            var cell3 = row.insertCell();
+            $(cell3).text(user.password);
+            var cell4 = row.insertCell();
+            $(cell4).text(user.role);
+            var cell5 = row.insertCell();
+            $(cell5).text(user.isBlocked);
+        }
+        function fillBalanceTableRow(table, currency, balance){
+            var row = table.insertRow();
+            var cell1 = row.insertCell();
+            $(cell1).text(currency);
+            var cell2 = row.insertCell();
+            $(cell2).text(balance.balance);
+            var cell3 = row.insertCell();
+            $(cell3).text(balance.usdAmount);
+        }
+    </script>
+</body>
+</html>

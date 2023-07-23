@@ -13,6 +13,7 @@ namespace UserWallet
             ConfigureServices(builder.Services, builder.Configuration);
             
             var app = builder.Build();
+            app.UseCors();
             using (var scope = app.Services.CreateScope())
             {
                 SeedDataFromJson.Initialize(scope.ServiceProvider);
@@ -22,7 +23,6 @@ namespace UserWallet
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
             app.UseAuthentication();
             app.UseAuthorization();
 
@@ -34,6 +34,13 @@ namespace UserWallet
         private static void ConfigureServices(IServiceCollection services, ConfigurationManager configuration)
         {
             services.Configure<ExchangeRateOptions>(configuration.GetSection("ExchangeRate"));
+
+            services.AddCors(b =>
+                b.AddDefaultPolicy(policy => policy.WithOrigins("http://localhost:63342")
+                                       .AllowAnyHeader()
+                                       .AllowAnyMethod()
+                                       .AllowCredentials()));
+
 
             services.AddControllers().AddJsonOptions(options =>
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles

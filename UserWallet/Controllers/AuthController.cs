@@ -50,7 +50,7 @@ namespace UserWallet.Controllers
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
             
-            return Ok();
+            return Ok(user);
         }
 
         [Authorize]

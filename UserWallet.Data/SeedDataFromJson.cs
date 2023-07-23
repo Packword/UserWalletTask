@@ -54,11 +54,10 @@ namespace UserWallet.Data
             {
                 UserBalance userBalance = new UserBalance
                 {
-                    UserId = user.Id,
                     CurrencyId = key,
                     Amount = tmpUser.Balances[key]
                 };
-                context.UserBalances.Add(userBalance);
+                user.Balances.Add(userBalance);
             }
         }
 
