@@ -13,7 +13,8 @@ namespace UserWallet.Services
         IDbContextFactory<ApplicationDbContext> _contextFactory;
 
         private Dictionary<string, decimal> currentRates = new Dictionary<string, decimal>();
-        private List<Currency>? currencies;
+        private List<Currency> currencies;
+        private Random rnd = new Random();
         private Task task;
 
         public ExchangeRateGenerator(IOptionsMonitor<ExchangeRateOptions> config, IDbContextFactory<ApplicationDbContext> contextFactory)
@@ -23,56 +24,45 @@ namespace UserWallet.Services
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            Random rnd = new Random();
             InitCurrencies();
-            InitRates(rnd);
+            InitRates();
 
-            task = UpdateRatesAsync(cancellationToken, rnd);
+            task = UpdateRatesAsync(cancellationToken);
             return Task.CompletedTask;
         }
 
-        private void InitRates(Random rnd)
+        private void InitRates()
         {
             foreach (var currency in currencies)
-            {
                 currentRates.Add(currency.Id, rnd.Next(80, 120));
-            }
         }
 
         private void InitCurrencies()
         {
-            using (var context = _contextFactory.CreateDbContext())
-            {
+            using var context = _contextFactory.CreateDbContext();
                 currencies = context.Currencies.ToList();
-            }
         }
 
-        private async Task UpdateRatesAsync(CancellationToken stoppingToken, Random rnd)
+        private async Task UpdateRatesAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
                 foreach(string key in currentRates.Keys)
-                {
                     currentRates[key] *= (1 + 0.05m * rnd.Next(-1, 2));
-                }
 
-                await Task.Delay(TimeSpan.FromSeconds(_config.CurrentValue.UpdateInterval), stoppingToken);
+                Console.Write(1);
+
+                await Task.Delay(_config.CurrentValue.UpdateInterval, stoppingToken);
             }
         }
 
         public List<Currency> GetCurrencies()
-        {
-            return currencies;
-        }
+            => currencies;
 
         public Dictionary<string, decimal> GetCurrentRates()
-        {
-            return currentRates;
-        }
+            => currentRates;
 
         public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await task;
-        }
+            => await task;
     }
 }

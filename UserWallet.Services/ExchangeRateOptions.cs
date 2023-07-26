@@ -2,6 +2,6 @@
 {
     public class ExchangeRateOptions
     {
-        public int UpdateInterval { get; set; }
+        public TimeSpan UpdateInterval { get; set; }
     }
 }

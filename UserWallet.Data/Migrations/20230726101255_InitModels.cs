@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace UserWallet.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialModels : Migration
+    public partial class InitModels : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,8 +16,8 @@ namespace UserWallet.Data.Migrations
                 columns: table => new
                 {
                     id = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
-                    isAvailable = table.Column<bool>(type: "boolean", nullable: false),
-                    type = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false)
+                    is_available = table.Column<bool>(type: "boolean", nullable: false),
+                    type = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -33,7 +33,7 @@ namespace UserWallet.Data.Migrations
                     username = table.Column<string>(type: "character varying(8)", maxLength: 8, nullable: false),
                     password = table.Column<string>(type: "character varying(8)", maxLength: 8, nullable: false),
                     role = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
-                    isBlocked = table.Column<bool>(type: "boolean", nullable: false)
+                    is_blocked = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -46,26 +46,24 @@ namespace UserWallet.Data.Migrations
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
-                    userId = table.Column<int>(type: "integer", nullable: false),
-                    currencyId = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    currency_id = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
                     amount = table.Column<decimal>(type: "numeric", nullable: false),
-                    cardNumber = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: true),
-                    cardholderName = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: true),
-                    address = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: true),
-                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false)
+                    additional_data = table.Column<string>(type: "jsonb", nullable: false),
+                    status = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_deposits", x => x.id);
                     table.ForeignKey(
-                        name: "FK_deposits_currencies_currencyId",
-                        column: x => x.currencyId,
+                        name: "FK_deposits_currencies_currency_id",
+                        column: x => x.currency_id,
                         principalTable: "currencies",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_deposits_users_userId",
-                        column: x => x.userId,
+                        name: "FK_deposits_users_user_id",
+                        column: x => x.user_id,
                         principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
@@ -75,41 +73,41 @@ namespace UserWallet.Data.Migrations
                 name: "userBalances",
                 columns: table => new
                 {
-                    userId = table.Column<int>(type: "integer", nullable: false),
-                    currencyId = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    currency_id = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
                     amount = table.Column<decimal>(type: "numeric", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_userBalances", x => new { x.userId, x.currencyId });
+                    table.PrimaryKey("PK_userBalances", x => new { x.user_id, x.currency_id });
                     table.ForeignKey(
-                        name: "FK_userBalances_currencies_currencyId",
-                        column: x => x.currencyId,
+                        name: "FK_userBalances_currencies_currency_id",
+                        column: x => x.currency_id,
                         principalTable: "currencies",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_userBalances_users_userId",
-                        column: x => x.userId,
+                        name: "FK_userBalances_users_user_id",
+                        column: x => x.user_id,
                         principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_deposits_currencyId",
+                name: "IX_deposits_currency_id",
                 table: "deposits",
-                column: "currencyId");
+                column: "currency_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_deposits_userId",
+                name: "IX_deposits_user_id",
                 table: "deposits",
-                column: "userId");
+                column: "user_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_userBalances_currencyId",
+                name: "IX_userBalances_currency_id",
                 table: "userBalances",
-                column: "currencyId");
+                column: "currency_id");
         }
 
         /// <inheritdoc />

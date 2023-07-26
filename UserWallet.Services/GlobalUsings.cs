@@ -3,3 +3,4 @@ global using UserWallet.Models;
 global using UserWallet.Interfaces;
 global using UserWallet.Services;
 global using UserWallet.DTOs;
+global using UserWallet.Data.Enums;

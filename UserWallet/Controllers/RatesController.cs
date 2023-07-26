@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using UserWallet.DTOs;
-using UserWallet.Services;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace UserWallet.Controllers
 {

@@ -1,9 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json;
 
 namespace UserWallet.Services
 {
     public class DepositFiatService : IDepositFiatService
     {
+        private const int CARDNUMBER_LENGTH = 16;
+        private const int CARDHOLDER_MINLENGTH = 2;
+        private const int CARDHOLDER_MAXLENGTH = 16;
+
         private readonly ApplicationDbContext _db;
         public DepositFiatService(ApplicationDbContext db)
         {
@@ -12,25 +16,29 @@ namespace UserWallet.Services
 
         public bool CreateDeposit(DepositDTO deposit, int userId, string currencyId)
         {
-            if(deposit.Card_number is null || deposit.Cardholder_name is null)
-            {
+            if (!IsFiatAdditionalDataValid(deposit))
                 return false;
-            }
-            else
+
+            Deposit newDeposit = new Deposit
             {
-                Deposit newDeposit = new Deposit
+                UserId = userId,
+                CurrencyId = currencyId,
+                Amount = deposit.Amount,
+                Status = DepositStatuses.Undecided,
+                AdditionalData = JsonSerializer.Serialize(new FiatDepositAdditionalDataDTO
                 {
-                    UserId = userId,
-                    CurrencyId = currencyId,
-                    Amount = deposit.Amount,
-                    Status = "Undecided",
-                    CardholderName = deposit.Cardholder_name,
-                    CardNumber = deposit.Card_number
-                };
-                _db.Deposits.Add(newDeposit);
-                _db.SaveChanges();
-                return true;
-            }
+                    CardholderName = deposit.CardholderName!,
+                    CardNumber = deposit.CardNumber!
+                })
+            };
+            _db.Deposits.Add(newDeposit);
+            _db.SaveChanges();
+            return true;
         }
+
+        private static bool IsFiatAdditionalDataValid(DepositDTO deposit)
+             => deposit.CardNumber?.Length >= CARDNUMBER_LENGTH
+                && deposit.CardholderName?.Length >= CARDHOLDER_MINLENGTH 
+                && deposit.CardholderName?.Length <= CARDHOLDER_MAXLENGTH;
     }
 }

@@ -1,12 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using UserWallet.DTOs;
-using UserWallet.Interfaces;
-using UserWallet.Models;
 
 namespace UserWallet.Controllers
 {
@@ -15,9 +11,14 @@ namespace UserWallet.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
-        public AuthController(IUserService userService)
+        private readonly IUserBalanceService _userBalanceService;
+        private readonly IHttpContextService _httpContextService;
+
+        public AuthController(IUserService userService, IUserBalanceService userBalanceService, IHttpContextService httpContextService)
         {
             _userService = userService;
+            _userBalanceService = userBalanceService;
+            _httpContextService = httpContextService;
         }
 
         [HttpPost("sign-up")]
@@ -39,6 +40,8 @@ namespace UserWallet.Controllers
             User? user = _userService.GetUserByNameAndPassword(userDto.Username, userDto.Password);
             if (user is null)
                 return Unauthorized();
+
+            user.Balances = _userBalanceService.GetUserBalances(user.Id);
 
             var claims = new List<Claim>
             {
@@ -68,8 +71,9 @@ namespace UserWallet.Controllers
             if(!ModelState.IsValid)
                 return BadRequest();
 
-            _userService.ChangePassword(newPassword, HttpContext);
+            _userService.ChangePassword(newPassword, _httpContextService.GetCurrentUserId(HttpContext));
             return Ok();
         }
+
     }
 }

@@ -18,6 +18,7 @@ namespace UserWallet
             {
                 SeedDataFromJson.Initialize(scope.ServiceProvider);
             }
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -65,6 +66,8 @@ namespace UserWallet
             services.AddScoped<ITransactionService, TransactionService>();
             services.AddScoped<IDepositFiatService, DepositFiatService>();
             services.AddScoped<IDepositCryptoService, DepositCryptoService>();
+            services.AddScoped<IUserBalanceService, UserBalanceService>();
+            services.AddScoped<IHttpContextService, HttpContextService>();
             services.AddSingleton<ExchangeRateGenerator>();
             services.AddSingleton<IHostedService, ExchangeRateGenerator>(serviceProvider => serviceProvider.GetRequiredService<ExchangeRateGenerator>());
             services.AddDbContextFactory<ApplicationDbContext>(options =>

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace UserWallet.Controllers
@@ -17,9 +16,7 @@ namespace UserWallet.Controllers
 
         [HttpGet]
         public List<User> Get()
-        {
-            return _userService.GetUsers();
-        }
+            => _userService.GetUsers();
 
         [HttpPatch("block/{userId}")]
         public IActionResult BlockUser(string userId)

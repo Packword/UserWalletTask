@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
+using UserWallet.Data.Enums;
 using UserWallet.Models;
 
 namespace UserWallet.Data
@@ -17,60 +18,52 @@ namespace UserWallet.Data
             using (var fs = new FileStream(CURRENCIES_JSON_PATH, FileMode.Open))
                 MigrateCurrenciesFromJsonToDb(context, fs);
 
-            if (context.Users.Any())
-                context.SaveChanges();
-            else
+            if (!context.Users.Any())
             {
                 using var fs = new FileStream(USERS_JSON_PATH, FileMode.Open);
                 MigrateUsersFromJsonToDb(context, fs);
-                context.SaveChanges();
             }
+
+            context.SaveChanges();
         }
 
         private static void MigrateUsersFromJsonToDb(ApplicationDbContext context, FileStream fs)
         {
-            List<TmpUser> tmpUsers = JsonSerializer.Deserialize<List<TmpUser>>(fs);
-            foreach (TmpUser tmpUser in tmpUsers)
-                ParseJsonUserAndAddToDb(context, tmpUser);
+            var tmpUsers = JsonSerializer.Deserialize<List<TmpUser>>(fs)!;
+            foreach (var tmpUser in tmpUsers)
+                MapJsonUserAndAddToDb(context, tmpUser);
         }
 
-        private static void ParseJsonUserAndAddToDb(ApplicationDbContext context, TmpUser tmpUser)
+        private static void MapJsonUserAndAddToDb(ApplicationDbContext context, TmpUser tmpUser)
         {
             User user = new User
             {
                 Username = tmpUser.Username,
                 Password = tmpUser.Password,
-                Role = tmpUser.Role,
-                IsBlocked = false
+                Role = tmpUser.Role
             };
-            ParseUserBalancesAndAddToDb(context, tmpUser, user);
+            MapUserBalancesAndAddToDb(tmpUser, user);
             context.Users.Add(user);
         }
 
-        private static void ParseUserBalancesAndAddToDb(ApplicationDbContext context, TmpUser tmpUser, User user)
+        private static void MapUserBalancesAndAddToDb(TmpUser tmpUser, User user)
         {
-            user.Balances = new List<UserBalance>();
-            foreach (var key in tmpUser.Balances.Keys)
-            {
-                UserBalance userBalance = new UserBalance
-                {
-                    CurrencyId = key,
-                    Amount = tmpUser.Balances[key]
-                };
-                user.Balances.Add(userBalance);
-            }
+            user.Balances = tmpUser.Balances
+                                   .Select(balance => new UserBalance { CurrencyId = balance.Key, Amount = balance.Value })
+                                   .ToList();
         }
 
         private static void MigrateCurrenciesFromJsonToDb(ApplicationDbContext context, FileStream fs)
         {
-            List<TmpCurrency>? tmpCurrencies = JsonSerializer.Deserialize<List<TmpCurrency>>(fs);
-            List<Currency> oldCurrencies = context.Currencies.ToList();
-            foreach (var oldCurr in oldCurrencies)
-                oldCurr.IsAvailable = false;
+            var tmpCurrencies = JsonSerializer.Deserialize<List<TmpCurrency>>(fs)!;
+            var oldCurrencies = context.Currencies.ToDictionary(c => c.Id);
+
+            foreach (var currId in oldCurrencies.Keys)
+                oldCurrencies[currId].IsAvailable = false;
 
             foreach (var tmpCurr in tmpCurrencies)
             {
-                var sameCurrency = oldCurrencies.FirstOrDefault(c => c.Id == tmpCurr.Id);
+                oldCurrencies.TryGetValue(tmpCurr.Id, out var sameCurrency);
 
                 if (sameCurrency is null)
                     AddNewCurrencyToDb(context, tmpCurr);
@@ -81,10 +74,16 @@ namespace UserWallet.Data
 
         private static void AddNewCurrencyToDb(ApplicationDbContext context, TmpCurrency tmpCurr)
         {
+            CurrencyTypes type = tmpCurr.Type switch
+            {
+                "Fiat" => CurrencyTypes.Fiat,
+                "Crypto" => CurrencyTypes.Crypto
+            };
+
             context.Currencies.Add(new Currency
             {
                 Id = tmpCurr.Id,
-                Type = tmpCurr.Type,
+                Type = type,
                 IsAvailable = true
             });
         }
@@ -92,15 +91,15 @@ namespace UserWallet.Data
         private class TmpUser
         {
             public int Id { get; set; }
-            public string Username { get; set; }
-            public string Password { get; set; }
-            public string Role { get; set; }
+            public string Username { get; set; } = null!;
+            public string Password { get; set; } = null!;
+            public string Role { get; set; } = null!;
             public Dictionary<string, decimal> Balances { get; set; } = new Dictionary<string, decimal>();
         }
 
         private class TmpCurrency
         {
-            public string Id { get; set; }
+            public string Id { get; set; } = null!;
             public string Type { get; set; }
         }
     }

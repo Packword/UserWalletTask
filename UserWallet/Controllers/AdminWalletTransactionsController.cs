@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace UserWallet.Controllers
@@ -18,9 +17,7 @@ namespace UserWallet.Controllers
 
         [HttpGet]
         public List<Deposit>? Get()
-        {
-            return _transactionService.GetAllDeposits();
-        }
+            => _transactionService.GetAllDeposits();
 
         [HttpPost("approve/{txId}")]
         public IActionResult ApproveTransaction(string txId)

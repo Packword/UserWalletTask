@@ -3,20 +3,20 @@
     public class ConvertToUsdService: IConvertToUsdService
     {
         private readonly ExchangeRateGenerator _exchangeRateGenerator;
+        private readonly IUserBalanceService _userBalanceService;
 
-        public ConvertToUsdService(ExchangeRateGenerator exchangeRateGenerator)
+        public ConvertToUsdService(ExchangeRateGenerator exchangeRateGenerator, IUserBalanceService userBalanceService)
         {
             _exchangeRateGenerator = exchangeRateGenerator;
+            _userBalanceService = userBalanceService;
         }
 
-        public Dictionary<string, BalanceDTO> GenerateUserBalance(User? user)
+        public Dictionary<string, BalanceDTO>? GenerateUserBalance(int userId)
         {
+            var balances = _userBalanceService.GetUserBalances(userId);
             var rates = _exchangeRateGenerator.GetCurrentRates();
-            Dictionary<string, BalanceDTO>? result = new Dictionary<string, BalanceDTO>();
-            foreach (UserBalance balance in user.Balances)
-            {
-                result.Add(balance.CurrencyId, new BalanceDTO { Balance = balance.Amount, UsdAmount = rates[balance.CurrencyId] * balance.Amount });
-            }
+
+            var result = balances?.ToDictionary(x => x.CurrencyId, x => new BalanceDTO { Balance = x.Amount, UsdAmount = rates[x.CurrencyId] * x.Amount });
 
             return result;
         }
