@@ -10,9 +10,7 @@
         }
 
         public List<UserBalance>? GetUserBalances(int userId)
-        {
-            return _db.Users.Include(u => u.Balances).FirstOrDefault(u => u.Id == userId)?.Balances?.ToList();
-        }
+            => _db.Users.Include(u => u.Balances).FirstOrDefault(u => u.Id == userId)?.Balances?.ToList();
 
         public void AddBalance(int userId, string currency, decimal amount)
         {

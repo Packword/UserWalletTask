@@ -11,22 +11,24 @@ namespace UserWallet.Controllers
         private readonly IDepositFiatService _depositFiatService;
         private readonly IDepositCryptoService _depositCryptoService;
         private readonly ITransactionService _transactionService;
+        private readonly IUserBalanceService _userBalanceService;
 
         private readonly List<Currency> currencies;
         private HashSet<string> availableCurrencies = new HashSet<string>();
 
-        public WalletController(ExchangeRateGenerator exchangeRateGenerator, 
-                                IUserService userService,
+        public WalletController(ExchangeRateGenerator exchangeRateGenerator,
                                 IConvertToUsdService convertToUsdService,
                                 IDepositFiatService depositFiatService,
                                 IDepositCryptoService depositCryptoService,
-                                ITransactionService transactionService)
+                                ITransactionService transactionService,
+                                IUserBalanceService userBalanceService)
         {
             _exchangeRateGenerator = exchangeRateGenerator;
             _convertToUsdService = convertToUsdService;
             _depositFiatService = depositFiatService;
             _depositCryptoService = depositCryptoService;
             _transactionService = transactionService;
+            _userBalanceService = userBalanceService;
 
             currencies = _exchangeRateGenerator.GetCurrencies();
             availableCurrencies = currencies.Where(c => c.IsAvailable).Select(c => c.Id).ToHashSet();
@@ -35,7 +37,11 @@ namespace UserWallet.Controllers
         [HttpGet("balance")]
         [Authorize(Roles = UsersRole.USER)]
         public Dictionary<string, BalanceDTO>? GetCurrentUserBalances()
-            => _convertToUsdService.GenerateUserBalance(HttpContext.GetCurrentUserId());
+        {
+            int id = HttpContext.GetCurrentUserId();
+            var balances = _userBalanceService.GetUserBalances(id);
+            return _convertToUsdService.GenerateUserBalance(balances);
+        }
 
         [HttpGet("tx")]
         [Authorize(Roles = UsersRole.USER)]
@@ -45,7 +51,10 @@ namespace UserWallet.Controllers
         [HttpGet("{id:int}")]
         [Authorize(Roles = UsersRole.ADMIN)]
         public Dictionary<string, BalanceDTO>? GetUserBalanceInUsdById(int id)
-            => _convertToUsdService.GenerateUserBalance(id);
+        {
+            var balances = _userBalanceService.GetUserBalances(id);
+            return _convertToUsdService.GenerateUserBalance(balances);
+        }
 
         [HttpPut("deposit/{currency}")]
         [Authorize(Roles = UsersRole.USER)]
