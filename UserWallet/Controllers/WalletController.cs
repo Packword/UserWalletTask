@@ -57,7 +57,7 @@ namespace UserWallet.Controllers
             if (!availableCurrencies.Contains(currency))
                 return BadRequest();
 
-            Currency curr = currencies.First(c => Equals(c.Id, currency));
+            Currency curr = currencies.First(c => c.Id == currency);
             int userId = HttpContext.GetCurrentUserId();
 
             bool result;

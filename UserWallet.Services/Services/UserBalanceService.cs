@@ -16,7 +16,7 @@
 
         public void AddBalance(int userId, string currency, decimal amount)
         {
-            UserBalance? balance = _db.UserBalances.FirstOrDefault(b => Equals(currency, b.CurrencyId) && Equals(b.UserId, userId));
+            UserBalance? balance = _db.UserBalances.FirstOrDefault(b => currency == b.CurrencyId && b.UserId == userId);
 
             if (balance is not null)
                 balance.Amount += amount;

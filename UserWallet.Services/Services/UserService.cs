@@ -34,7 +34,7 @@
 
         public bool AddUser(string userName, string password)
         {
-            if (_db.Users.FirstOrDefault(u => Equals(u.Username, userName)) is not null)
+            if (_db.Users.FirstOrDefault(u => u.Username == userName) is not null)
                 return false;
 
             User user = new User()
@@ -62,6 +62,6 @@
             => _db.Users.FirstOrDefault(u => u.Id == userId);
 
         public User? GetUserByNameAndPassword(string username, string password)
-            => _db.Users.FirstOrDefault(u => Equals(u.Username, username) && Equals(u.Password, password));
+            => _db.Users.FirstOrDefault(u => u.Username == username && u.Password == password);
     }
 }
