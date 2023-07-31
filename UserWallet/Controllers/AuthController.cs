@@ -19,11 +19,11 @@ namespace UserWallet.Controllers
         public IActionResult Add([FromBody] SignInDTO userDto)
         {
             if(!ModelState.IsValid)
-                return BadRequest();
+                return BadRequest(ModelState.Values.SelectMany(v => v.Errors));
 
             var result = _userService.AddUser(userDto.Username, userDto.Password);
             if (!result)
-                return BadRequest();
+                return BadRequest("The user already exists");
 
             return Ok();
         }
@@ -63,7 +63,7 @@ namespace UserWallet.Controllers
         public IActionResult ChangePassword(string newPassword)
         {
             if(!ModelState.IsValid)
-                return BadRequest();
+                return BadRequest(ModelState.Values.SelectMany(v => v.Errors));
 
             _userService.ChangePassword(newPassword, HttpContext.GetCurrentUserId());
             return Ok();

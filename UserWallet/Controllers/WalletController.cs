@@ -52,10 +52,10 @@ namespace UserWallet.Controllers
         public IActionResult CreateDeposit(string currency, [FromBody] DepositDTO depositDTO)
         {
             if (!ModelState.IsValid)
-                return BadRequest();
+                return BadRequest(ModelState.Values.SelectMany(v => v.Errors));
 
             if (!availableCurrencies.Contains(currency))
-                return BadRequest();
+                return BadRequest("Unavailable currency");
 
             Currency curr = currencies.First(c => c.Id == currency);
             int userId = HttpContext.GetCurrentUserId();
@@ -75,7 +75,7 @@ namespace UserWallet.Controllers
             }
 
             if (!result)
-                return BadRequest();
+                return BadRequest("Invalid additional data");
 
             return Ok();
         }
