@@ -40,7 +40,7 @@ namespace UserWallet.Controllers
         {
             int id = HttpContext.GetCurrentUserId();
             var balances = _userBalanceService.GetUserBalances(id);
-            return _convertToUsdService.GenerateUserBalance(balances);
+            return ConvertBalanceToDictionaryWithUsd(balances);
         }
 
         [HttpGet("tx")]
@@ -53,7 +53,7 @@ namespace UserWallet.Controllers
         public Dictionary<string, BalanceDTO>? GetUserBalanceInUsdById(int id)
         {
             var balances = _userBalanceService.GetUserBalances(id);
-            return _convertToUsdService.GenerateUserBalance(balances);
+            return ConvertBalanceToDictionaryWithUsd(balances);
         }
 
         [HttpPut("deposit/{currency}")]
@@ -87,6 +87,16 @@ namespace UserWallet.Controllers
                 return BadRequest("Invalid additional data");
 
             return Ok();
+        }
+
+        private Dictionary<string, BalanceDTO>? ConvertBalanceToDictionaryWithUsd(List<UserBalance> balances)
+        {
+            return balances?.ToDictionary(key => key.CurrencyId,
+                                          value => new BalanceDTO
+                                          {
+                                              Amount = value.Amount,
+                                              UsdAmount = _convertToUsdService.ConvertCurrency(value.CurrencyId, value.Amount)
+                                          });
         }
     }
 }

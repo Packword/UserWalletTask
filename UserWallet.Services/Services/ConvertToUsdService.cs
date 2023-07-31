@@ -9,13 +9,10 @@
             _exchangeRateGenerator = exchangeRateGenerator;
         }
 
-        public Dictionary<string, BalanceDTO> GenerateUserBalance(List<UserBalance> balances)
+        public decimal ConvertCurrency(string currencyId, decimal amount)
         {
             var rates = _exchangeRateGenerator.GetCurrentRates();
-
-            var result = balances?.ToDictionary(x => x.CurrencyId, x => new BalanceDTO { Balance = x.Amount, UsdAmount = rates[x.CurrencyId] * x.Amount });
-
-            return result;
+            return rates[currencyId] * amount;
         }
     }
 }
