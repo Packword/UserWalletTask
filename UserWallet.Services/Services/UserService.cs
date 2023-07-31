@@ -51,7 +51,7 @@
             return true;
         }
 
-        public void ChangePassword(string newPassword, int userId)
+        public void ChangePassword(int userId, string newPassword)
         {
             User user = GetUserById(userId)!;
             user.Password = newPassword;

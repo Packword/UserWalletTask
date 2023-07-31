@@ -24,7 +24,7 @@
                 return false;
 
             transaction.Status = DepositStatus.Approved;
-            _userBalanceService.AddBalance(transaction.UserId, transaction.CurrencyId, transaction.Amount);
+            _userBalanceService.AddUserBalance(transaction.UserId, transaction.CurrencyId, transaction.Amount);
             _db.SaveChanges();
             return true;
         }

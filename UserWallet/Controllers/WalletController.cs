@@ -84,7 +84,7 @@ namespace UserWallet.Controllers
             }
 
             if (!result)
-                return BadRequest("Invalid additional data");
+                return BadRequest("Wrong additional data lenght, crypto address and fiat cardnumber must be 16 characters, and fiat cardholder name between 2 and 16 characters");
 
             return Ok();
         }

@@ -25,10 +25,10 @@
         {
             var tmpUsers = JsonSerializer.Deserialize<List<TmpUser>>(fs)!;
             foreach (var tmpUser in tmpUsers)
-                MapJsonUserAndAddToDb(context, tmpUser);
+                AddUserToDb(context, tmpUser);
         }
 
-        private static void MapJsonUserAndAddToDb(ApplicationDbContext context, TmpUser tmpUser)
+        private static void AddUserToDb(ApplicationDbContext context, TmpUser tmpUser)
         {
             User user = new User
             {
@@ -36,11 +36,11 @@
                 Password = tmpUser.Password,
                 Role = tmpUser.Role
             };
-            MapUserBalances(tmpUser, user);
+            FillUserBalances(user, tmpUser);
             context.Users.Add(user);
         }
 
-        private static void MapUserBalances(TmpUser tmpUser, User user)
+        private static void FillUserBalances(User user, TmpUser tmpUser)
         {
             user.Balances = tmpUser.Balances
                                    .Select(balance => new UserBalance { CurrencyId = balance.Key, Amount = balance.Value })

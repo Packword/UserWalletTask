@@ -14,7 +14,7 @@
 
         public bool CreateDeposit(DepositDTO deposit, int userId, string currencyId)
         {
-            if (!IsFiatAdditionalDataValid(deposit))
+            if (!IsAdditionalDataValid(deposit))
                 return false;
 
             Deposit newDeposit = new Deposit
@@ -34,7 +34,7 @@
             return true;
         }
 
-        private static bool IsFiatAdditionalDataValid(DepositDTO deposit)
+        private static bool IsAdditionalDataValid(DepositDTO deposit)
              => deposit.CardNumber?.Length >= CARDNUMBER_LENGTH
                 && deposit.CardholderName?.Length is >= CARDHOLDER_MINLENGTH and <= CARDHOLDER_MAXLENGTH;
     }

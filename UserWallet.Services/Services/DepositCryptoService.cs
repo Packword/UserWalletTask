@@ -11,9 +11,8 @@
         }
         public bool CreateDeposit(DepositDTO deposit, int userId, string currencyId)
         {
-            if (!IsCryptoAdditionalDataValid(deposit))
+            if (!IsAdditionalDataValid(deposit))
                 return false;
-
 
             Deposit newDeposit = new Deposit
             {
@@ -31,7 +30,7 @@
             return true;
         }
 
-        private static bool IsCryptoAdditionalDataValid(DepositDTO deposit)
+        private static bool IsAdditionalDataValid(DepositDTO deposit)
             => deposit.Address?.Length == ADDRESS_LENGTH;
     }
 }

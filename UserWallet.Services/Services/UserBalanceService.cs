@@ -12,7 +12,7 @@
         public List<UserBalance>? GetUserBalances(int userId)
             => _db.Users.Include(u => u.Balances).FirstOrDefault(u => u.Id == userId)?.Balances?.ToList();
 
-        public void AddBalance(int userId, string currency, decimal amount)
+        public void AddUserBalance(int userId, string currency, decimal amount)
         {
             UserBalance? balance = _db.UserBalances.FirstOrDefault(b => currency == b.CurrencyId && b.UserId == userId);
 

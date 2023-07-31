@@ -65,7 +65,7 @@ namespace UserWallet.Controllers
             if(!ModelState.IsValid)
                 return BadRequest(ModelState.Values.SelectMany(v => v.Errors));
 
-            _userService.ChangePassword(newPassword, HttpContext.GetCurrentUserId());
+            _userService.ChangePassword(HttpContext.GetCurrentUserId(), newPassword);
             return Ok();
         }
     }
