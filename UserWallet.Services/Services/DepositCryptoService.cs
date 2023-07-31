@@ -22,7 +22,7 @@ namespace UserWallet.Services
                 UserId = userId,
                 CurrencyId = currencyId,
                 Amount = deposit.Amount,
-                Status = DepositStatuses.Undecided,
+                Status = DepositStatus.Undecided,
                 AdditionalData = JsonSerializer.Serialize(new CryptoDepositAdditionalDataDTO
                 {
                     Address = deposit.Address!

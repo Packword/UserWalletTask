@@ -1,10 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using System.Text.Json;
-using UserWallet.Data.Enums;
-using UserWallet.Models;
-
-namespace UserWallet.Data
+﻿namespace UserWallet.Data
 {
     public static class SeedDataFromJson
     {
@@ -42,11 +36,11 @@ namespace UserWallet.Data
                 Password = tmpUser.Password,
                 Role = tmpUser.Role
             };
-            MapUserBalancesAndAddToDb(tmpUser, user);
+            MapUserBalances(tmpUser, user);
             context.Users.Add(user);
         }
 
-        private static void MapUserBalancesAndAddToDb(TmpUser tmpUser, User user)
+        private static void MapUserBalances(TmpUser tmpUser, User user)
         {
             user.Balances = tmpUser.Balances
                                    .Select(balance => new UserBalance { CurrencyId = balance.Key, Amount = balance.Value })
@@ -74,16 +68,10 @@ namespace UserWallet.Data
 
         private static void AddNewCurrencyToDb(ApplicationDbContext context, TmpCurrency tmpCurr)
         {
-            CurrencyTypes type = tmpCurr.Type switch
-            {
-                "Fiat" => CurrencyTypes.Fiat,
-                "Crypto" => CurrencyTypes.Crypto
-            };
-
             context.Currencies.Add(new Currency
             {
                 Id = tmpCurr.Id,
-                Type = type,
+                Type = Enum.Parse<CurrencyType>(tmpCurr.Type),
                 IsAvailable = true
             });
         }

@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-
-namespace UserWallet.Controllers
+﻿namespace UserWallet.Controllers
 {
     [Route("[controller]")]
     [ApiController]
@@ -33,11 +30,7 @@ namespace UserWallet.Controllers
             _httpContextService = httpContextService;
 
             currencies = _exchangeRateGenerator.GetCurrencies();
-            foreach (var currency in currencies)
-            {
-                if (currency.IsAvailable)
-                    availableCurrencies.Add(currency.Id);
-            }
+            availableCurrencies = currencies.Where(c => c.IsAvailable).Select(c => c.Id).ToHashSet();
         }
 
         [HttpGet("balance")]
@@ -50,7 +43,7 @@ namespace UserWallet.Controllers
         public List<Deposit>? GetUserTransactions()
             => _transactionService.GetUserDeposits(_httpContextService.GetCurrentUserId(HttpContext));
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         [Authorize(Roles = "Admin")]
         public Dictionary<string, BalanceDTO>? GetUserBalanceInUsdById(int id)
             => _convertToUsdService.GenerateUserBalance(id);
@@ -71,10 +64,10 @@ namespace UserWallet.Controllers
             bool result;
             switch (curr.Type)
             {
-                case CurrencyTypes.Fiat:
+                case CurrencyType.Fiat:
                     result = _depositFiatService.CreateDeposit(depositDTO, userId, curr.Id);
                     break;
-                case CurrencyTypes.Crypto:
+                case CurrencyType.Crypto:
                     result = _depositCryptoService.CreateDeposit(depositDTO, userId, curr.Id);
                     break;
                 default:

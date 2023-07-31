@@ -1,20 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using System.Text.Json;
-using UserWallet.Models;
-using UserWallet.OptionsModels;
 
 namespace UserWallet.Services
 {
     public class ExchangeRateGenerator : IHostedService
     {
         private readonly IOptionsMonitor<ExchangeRateOptions> _config;
-        IDbContextFactory<ApplicationDbContext> _contextFactory;
+        private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
+        private readonly Random rnd = new Random();
 
         private Dictionary<string, decimal> currentRates = new Dictionary<string, decimal>();
         private List<Currency> currencies;
-        private Random rnd = new Random();
         private Task task;
 
         public ExchangeRateGenerator(IOptionsMonitor<ExchangeRateOptions> config, IDbContextFactory<ApplicationDbContext> contextFactory)
@@ -34,24 +30,25 @@ namespace UserWallet.Services
         private void InitRates()
         {
             foreach (var currency in currencies)
+            {
                 currentRates.Add(currency.Id, rnd.Next(80, 120));
+            }
         }
 
         private void InitCurrencies()
         {
             using var context = _contextFactory.CreateDbContext();
-                currencies = context.Currencies.ToList();
+            currencies = context.Currencies.ToList();
         }
 
         private async Task UpdateRatesAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                foreach(string key in currentRates.Keys)
-                    currentRates[key] *= (1 + 0.05m * rnd.Next(-1, 2));
-
-                Console.Write(1);
-
+                foreach (string key in currentRates.Keys)
+                {
+                    currentRates[key] *= 1 + 0.05m * rnd.Next(-1, 2);
+                }   
                 await Task.Delay(_config.CurrentValue.UpdateInterval, stoppingToken);
             }
         }

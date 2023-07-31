@@ -1,12 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UserWallet.Models;
-
-namespace UserWallet.Data
+﻿namespace UserWallet.Data
 {
     public class ApplicationDbContext: DbContext
     {

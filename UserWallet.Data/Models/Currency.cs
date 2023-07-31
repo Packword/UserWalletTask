@@ -16,6 +16,6 @@ namespace UserWallet.Models
         public bool IsAvailable { get; set; }
 
         [Column("type")]
-        public CurrencyTypes Type { get; set; }
+        public CurrencyType Type { get; set; }
     }
 }

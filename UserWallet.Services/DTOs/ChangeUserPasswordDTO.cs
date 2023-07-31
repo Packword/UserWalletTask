@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace UserWallet.DTOs
+﻿namespace UserWallet.DTOs
 {
     public class ChangeUserPasswordDTO
     {

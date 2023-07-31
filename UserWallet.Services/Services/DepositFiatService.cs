@@ -24,7 +24,7 @@ namespace UserWallet.Services
                 UserId = userId,
                 CurrencyId = currencyId,
                 Amount = deposit.Amount,
-                Status = DepositStatuses.Undecided,
+                Status = DepositStatus.Undecided,
                 AdditionalData = JsonSerializer.Serialize(new FiatDepositAdditionalDataDTO
                 {
                     CardholderName = deposit.CardholderName!,
@@ -38,7 +38,6 @@ namespace UserWallet.Services
 
         private static bool IsFiatAdditionalDataValid(DepositDTO deposit)
              => deposit.CardNumber?.Length >= CARDNUMBER_LENGTH
-                && deposit.CardholderName?.Length >= CARDHOLDER_MINLENGTH 
-                && deposit.CardholderName?.Length <= CARDHOLDER_MAXLENGTH;
+                && deposit.CardholderName?.Length is >= CARDHOLDER_MINLENGTH and <= CARDHOLDER_MAXLENGTH;
     }
 }

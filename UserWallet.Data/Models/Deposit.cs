@@ -30,6 +30,6 @@ namespace UserWallet.Models
         public string AdditionalData { get; set; } = null!;
 
         [Column("status")]
-        public DepositStatuses Status { get; set; }
+        public DepositStatus Status { get; set; }
     }
 }

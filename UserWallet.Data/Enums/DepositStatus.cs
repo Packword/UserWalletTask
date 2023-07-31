@@ -1,6 +1,6 @@
 ﻿namespace UserWallet.Data.Enums
 {
-    public enum DepositStatuses
+    public enum DepositStatus
     {
         Undecided,
         Approved,

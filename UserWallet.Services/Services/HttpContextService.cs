@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
-
-namespace UserWallet.Services
+﻿namespace UserWallet.Services
 {
     public class HttpContextService: IHttpContextService
     {
