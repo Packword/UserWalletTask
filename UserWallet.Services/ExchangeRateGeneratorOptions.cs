@@ -1,6 +1,6 @@
 ﻿namespace UserWallet.OptionsModels
 {
-    public class ExchangeRateOptions
+    public class ExchangeRateGeneratorOptions
     {
         public TimeSpan UpdateInterval { get; set; }
     }

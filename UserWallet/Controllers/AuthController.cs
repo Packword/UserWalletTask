@@ -1,8 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+﻿using UserWallet.Services.Extensions;
 
 namespace UserWallet.Controllers
 {
@@ -12,17 +8,15 @@ namespace UserWallet.Controllers
     {
         private readonly IUserService _userService;
         private readonly IUserBalanceService _userBalanceService;
-        private readonly IHttpContextService _httpContextService;
 
-        public AuthController(IUserService userService, IUserBalanceService userBalanceService, IHttpContextService httpContextService)
+        public AuthController(IUserService userService, IUserBalanceService userBalanceService)
         {
             _userService = userService;
             _userBalanceService = userBalanceService;
-            _httpContextService = httpContextService;
         }
 
         [HttpPost("sign-up")]
-        public IActionResult Add([FromBody] AddUserDTO userDto)
+        public IActionResult Add([FromBody] SignInDTO userDto)
         {
             if(!ModelState.IsValid)
                 return BadRequest();
@@ -35,7 +29,7 @@ namespace UserWallet.Controllers
         }
 
         [HttpPost("login")]
-        async public Task<IActionResult> Login([FromBody] UserDTO userDto)
+        async public Task<IActionResult> Login([FromBody] LoginDTO userDto)
         {
             User? user = _userService.GetUserByNameAndPassword(userDto.Username, userDto.Password);
             if (user is null)
@@ -71,9 +65,8 @@ namespace UserWallet.Controllers
             if(!ModelState.IsValid)
                 return BadRequest();
 
-            _userService.ChangePassword(newPassword, _httpContextService.GetCurrentUserId(HttpContext));
+            _userService.ChangePassword(newPassword, HttpContext.GetCurrentUserId());
             return Ok();
         }
-
     }
 }

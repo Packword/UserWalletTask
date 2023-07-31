@@ -42,7 +42,7 @@
                 Username = userName,
                 Password = password,
                 IsBlocked = false,
-                Role = "User"
+                Role = UsersRole.USER
             };
 
             _db.Users.Add(user);

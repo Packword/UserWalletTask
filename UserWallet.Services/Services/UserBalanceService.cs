@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace UserWallet.Services
+﻿namespace UserWallet.Services
 {
     public class UserBalanceService: IUserBalanceService
     {

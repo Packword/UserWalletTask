@@ -4,6 +4,7 @@ global using UserWallet.Interfaces;
 global using UserWallet.Services;
 global using UserWallet.DTOs;
 global using UserWallet.Data.Enums;
+global using UserWallet.Services.Extensions;
 global using Microsoft.AspNetCore.Authentication.Cookies;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.AspNetCore.Authorization;

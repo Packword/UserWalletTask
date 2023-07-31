@@ -1,6 +1,6 @@
 ﻿namespace UserWallet.Data.Enums
 {
-    public enum CurrencyTypes
+    public enum CurrencyType
     {
         Fiat,
         Crypto

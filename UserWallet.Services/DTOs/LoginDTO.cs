@@ -1,8 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace UserWallet.DTOs
+﻿namespace UserWallet.DTOs
 {
-    public class UserDTO
+    public class LoginDTO
     {
         [Required]
         [StringLength(8, MinimumLength = 4)]

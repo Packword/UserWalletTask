@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace UserWallet.Models
+﻿namespace UserWallet.Models
 {
     [Table("userBalances")]
     public class UserBalance

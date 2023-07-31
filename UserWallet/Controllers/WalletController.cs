@@ -1,4 +1,6 @@
-﻿namespace UserWallet.Controllers
+﻿using UserWallet.Services.Extensions;
+
+namespace UserWallet.Controllers
 {
     [Route("[controller]")]
     [ApiController]
@@ -9,7 +11,6 @@
         private readonly IDepositFiatService _depositFiatService;
         private readonly IDepositCryptoService _depositCryptoService;
         private readonly ITransactionService _transactionService;
-        private readonly IHttpContextService _httpContextService;
 
         private readonly List<Currency> currencies;
         private HashSet<string> availableCurrencies = new HashSet<string>();
@@ -19,37 +20,35 @@
                                 IConvertToUsdService convertToUsdService,
                                 IDepositFiatService depositFiatService,
                                 IDepositCryptoService depositCryptoService,
-                                ITransactionService transactionService,
-                                IHttpContextService httpContextService)
+                                ITransactionService transactionService)
         {
             _exchangeRateGenerator = exchangeRateGenerator;
             _convertToUsdService = convertToUsdService;
             _depositFiatService = depositFiatService;
             _depositCryptoService = depositCryptoService;
             _transactionService = transactionService;
-            _httpContextService = httpContextService;
 
             currencies = _exchangeRateGenerator.GetCurrencies();
             availableCurrencies = currencies.Where(c => c.IsAvailable).Select(c => c.Id).ToHashSet();
         }
 
         [HttpGet("balance")]
-        [Authorize(Roles = "User")]
+        [Authorize(Roles = UsersRole.USER)]
         public Dictionary<string, BalanceDTO>? GetCurrentUserBalances()
-            => _convertToUsdService.GenerateUserBalance(_httpContextService.GetCurrentUserId(HttpContext));
+            => _convertToUsdService.GenerateUserBalance(HttpContext.GetCurrentUserId());
 
         [HttpGet("tx")]
-        [Authorize(Roles = "User")]
+        [Authorize(Roles = UsersRole.USER)]
         public List<Deposit>? GetUserTransactions()
-            => _transactionService.GetUserDeposits(_httpContextService.GetCurrentUserId(HttpContext));
+            => _transactionService.GetUserDeposits(HttpContext.GetCurrentUserId());
 
         [HttpGet("{id:int}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = UsersRole.ADMIN)]
         public Dictionary<string, BalanceDTO>? GetUserBalanceInUsdById(int id)
             => _convertToUsdService.GenerateUserBalance(id);
 
         [HttpPut("deposit/{currency}")]
-        [Authorize(Roles = "User")]
+        [Authorize(Roles = UsersRole.USER)]
         public IActionResult CreateDeposit(string currency, [FromBody] DepositDTO depositDTO)
         {
             if (!ModelState.IsValid)
@@ -59,7 +58,7 @@
                 return BadRequest();
 
             Currency curr = currencies.First(c => Equals(c.Id, currency));
-            int userId = _httpContextService.GetCurrentUserId(HttpContext);
+            int userId = HttpContext.GetCurrentUserId();
 
             bool result;
             switch (curr.Type)

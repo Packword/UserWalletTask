@@ -1,11 +1,8 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
-
-namespace UserWallet.Services
+﻿namespace UserWallet.Services
 {
     public class ExchangeRateGenerator : IHostedService
     {
-        private readonly IOptionsMonitor<ExchangeRateOptions> _config;
+        private readonly IOptionsMonitor<ExchangeRateGeneratorOptions> _config;
         private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
         private readonly Random rnd = new Random();
 
@@ -13,7 +10,7 @@ namespace UserWallet.Services
         private List<Currency> currencies;
         private Task task;
 
-        public ExchangeRateGenerator(IOptionsMonitor<ExchangeRateOptions> config, IDbContextFactory<ApplicationDbContext> contextFactory)
+        public ExchangeRateGenerator(IOptionsMonitor<ExchangeRateGeneratorOptions> config, IDbContextFactory<ApplicationDbContext> contextFactory)
         {
             _contextFactory = contextFactory;
             _config = config;

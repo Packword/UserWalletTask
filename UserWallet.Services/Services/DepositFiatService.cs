@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-namespace UserWallet.Services
+﻿namespace UserWallet.Services
 {
     public class DepositFiatService : IDepositFiatService
     {

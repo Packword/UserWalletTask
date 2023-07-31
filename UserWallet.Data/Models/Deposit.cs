@@ -1,8 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using UserWallet.Data.Enums;
-
-namespace UserWallet.Models
+﻿namespace UserWallet.Models
 {
     [Table("deposits")]
     public class Deposit
