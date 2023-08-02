@@ -1,6 +1,4 @@
-﻿using UserWallet.Services.Extensions;
-
-namespace UserWallet.Controllers
+﻿namespace UserWallet.Controllers
 {
     [Route("[controller]")]
     [ApiController]
@@ -16,7 +14,7 @@ namespace UserWallet.Controllers
         }
 
         [HttpPost("sign-up")]
-        public IActionResult Add([FromBody] SignInDTO userDto)
+        public IActionResult Add([FromBody] SignUpDTO userDto)
         {
             if(!ModelState.IsValid)
                 return BadRequest(ModelState.Values.SelectMany(v => v.Errors));
@@ -60,12 +58,12 @@ namespace UserWallet.Controllers
 
         [HttpPatch("change-password")]
         [Authorize]
-        public IActionResult ChangePassword(string newPassword)
+        public IActionResult ChangePassword([FromBody] ChangeUserPasswordDTO model)
         {
             if(!ModelState.IsValid)
                 return BadRequest(ModelState.Values.SelectMany(v => v.Errors));
 
-            _userService.ChangePassword(HttpContext.GetCurrentUserId(), newPassword);
+            _userService.ChangePassword(HttpContext.GetCurrentUserId(), model.NewPassword);
             return Ok();
         }
     }
