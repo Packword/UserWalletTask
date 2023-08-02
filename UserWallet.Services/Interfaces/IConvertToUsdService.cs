@@ -2,6 +2,6 @@
 {
     public interface IConvertToUsdService
     {
-        public decimal ConvertCurrency(string currencyId, decimal amount);
+        public Dictionary<string, BalanceDTO> ConvertCurrency(Dictionary<string, decimal> balances);
     }
 }

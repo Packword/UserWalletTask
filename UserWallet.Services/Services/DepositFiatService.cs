@@ -12,7 +12,7 @@
             _db = db;
         }
 
-        public bool CreateDeposit(DepositDTO deposit, int userId, string currencyId)
+        public bool CreateDeposit(int userId, DepositDTO deposit, string currencyId)
         {
             if (!IsAdditionalDataValid(deposit))
                 return false;

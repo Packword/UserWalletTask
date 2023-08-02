@@ -40,7 +40,7 @@ namespace UserWallet.Controllers
         {
             int id = HttpContext.GetCurrentUserId();
             var balances = _userBalanceService.GetUserBalances(id);
-            return ConvertBalanceToDictionaryWithUsd(balances);
+            return ConvertToBalanceDTO(balances);
         }
 
         [HttpGet("tx")]
@@ -53,30 +53,30 @@ namespace UserWallet.Controllers
         public Dictionary<string, BalanceDTO>? GetUserBalanceInUsdById(int id)
         {
             var balances = _userBalanceService.GetUserBalances(id);
-            return ConvertBalanceToDictionaryWithUsd(balances);
+            return ConvertToBalanceDTO(balances);
         }
 
         [HttpPut("deposit/{currency}")]
         [Authorize(Roles = UsersRole.USER)]
-        public IActionResult CreateDeposit(string currency, [FromBody] DepositDTO depositDTO)
+        public IActionResult CreateDeposit(string currencyId, [FromBody] DepositDTO depositDTO)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.Values.SelectMany(v => v.Errors));
 
-            if (!availableCurrencies.Contains(currency))
+            if (!availableCurrencies.Contains(currencyId))
                 return BadRequest("Unavailable currency");
 
-            Currency curr = currencies.First(c => c.Id == currency);
+            Currency currency = currencies.First(c => c.Id == currencyId);
             int userId = HttpContext.GetCurrentUserId();
 
             bool result;
-            switch (curr.Type)
+            switch (currency.Type)
             {
                 case CurrencyType.Fiat:
-                    result = _depositFiatService.CreateDeposit(depositDTO, userId, curr.Id);
+                    result = _depositFiatService.CreateDeposit(userId, depositDTO, currency.Id);
                     break;
                 case CurrencyType.Crypto:
-                    result = _depositCryptoService.CreateDeposit(depositDTO, userId, curr.Id);
+                    result = _depositCryptoService.CreateDeposit(userId, depositDTO, currency.Id);
                     break;
                 default:
                     result = false;
@@ -89,14 +89,7 @@ namespace UserWallet.Controllers
             return Ok();
         }
 
-        private Dictionary<string, BalanceDTO>? ConvertBalanceToDictionaryWithUsd(List<UserBalance> balances)
-        {
-            return balances?.ToDictionary(key => key.CurrencyId,
-                                          value => new BalanceDTO
-                                          {
-                                              Amount = value.Amount,
-                                              UsdAmount = _convertToUsdService.ConvertCurrency(value.CurrencyId, value.Amount)
-                                          });
-        }
+        private Dictionary<string, BalanceDTO>? ConvertToBalanceDTO(List<UserBalance> balances)
+            => _convertToUsdService.ConvertCurrency(balances.ToDictionary(key => key.CurrencyId, value => value.Amount));
     }
 }
