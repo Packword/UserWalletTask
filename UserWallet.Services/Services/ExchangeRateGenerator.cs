@@ -56,7 +56,7 @@
         public Dictionary<string, decimal> GetCurrentRates()
             => currentRates;
 
-        public async Task StopAsync(CancellationToken cancellationToken)
-            => await task;
+        public Task StopAsync(CancellationToken cancellationToken)
+            => Task.CompletedTask;
     }
 }

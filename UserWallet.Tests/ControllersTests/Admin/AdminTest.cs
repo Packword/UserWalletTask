@@ -2,11 +2,13 @@
 {
     public class AdminTest: BaseControllerTest
     {
+        protected AuthServiceHelper _authServiceHelper;
         [SetUp]
         public async override Task Setup()
         {
             await base.Setup();
-            await _authServiceHelper.LoginAsync("Admin", "1234");
+            _authServiceHelper = new AuthServiceHelper(_client);
+            await _authServiceHelper.LoginAsAdmin();
         }
     }
 }
