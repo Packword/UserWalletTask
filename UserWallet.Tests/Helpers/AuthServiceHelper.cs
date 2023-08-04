@@ -15,7 +15,14 @@
             return response;
         }
 
-        public async Task<HttpResponseMessage> Login(string username, string password)
+
+        public async Task<HttpResponseMessage> LoginAsync(string username, string password)
+        {
+            HttpRequestMessage requestMessage = GenerateLoginRequestMessage(username, password);
+            return await _client.SendAsync(requestMessage);
+        }
+
+        private static HttpRequestMessage GenerateLoginRequestMessage(string username, string password)
         {
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/auth/login");
             requestMessage.Content = JsonContent.Create(new LoginDTO
@@ -23,7 +30,7 @@
                 Username = username,
                 Password = password,
             });
-            return await _client.SendAsync(requestMessage);
+            return requestMessage;
         }
     }
 }

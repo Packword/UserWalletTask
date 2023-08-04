@@ -18,7 +18,7 @@
         }
 
         [SetUp]
-        public void Setup()
+        public async virtual Task Setup()
         {
             _client = _factory.CreateClient();
             _authServiceHelper = new AuthServiceHelper(_client);
