@@ -3,6 +3,7 @@
     public class AdminWalletTransactionsPositiveTests: AdminTest
     {
         private TransactionServiceHelper _transactionServiceHelper;
+        private const int TEST_TRANSACTION_ID = 1;
 
         [SetUp]
         public async override Task Setup()
@@ -16,8 +17,8 @@
         {
             await CreateTestTransaction();
             var transactions = await GetTransactions();
-            transactions!.Count.Should().Be(1);
-            transactions.First(u => u.Id == 1).Status.Should().Be(DepositStatus.Undecided);
+            transactions!.Count.Should().Be(TEST_TRANSACTION_ID);
+            transactions.First(u => u.Id == TEST_TRANSACTION_ID).Status.Should().Be(DepositStatus.Undecided);
         }
 
         [Test]
@@ -27,17 +28,17 @@
             var response = await ApproveTransaction(1);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var transactions = await GetTransactions();
-            transactions!.First(u => u.Id == 1).Status.Should().Be(DepositStatus.Approved);
+            transactions!.First(u => u.Id == TEST_TRANSACTION_ID).Status.Should().Be(DepositStatus.Approved);
         }
 
         [Test]
         public async Task PositiveDeclineTransactionTest()
         {
             await CreateTestTransaction();
-            var response = await DeclineTransaction(1);
+            var response = await DeclineTransaction(TEST_TRANSACTION_ID);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var transactions = await GetTransactions();
-            transactions!.First(u => u.Id == 1).Status.Should().Be(DepositStatus.Declined);
+            transactions!.First(u => u.Id == TEST_TRANSACTION_ID).Status.Should().Be(DepositStatus.Declined);
         }
 
         private async Task<HttpResponseMessage> DeclineTransaction(int txId)
