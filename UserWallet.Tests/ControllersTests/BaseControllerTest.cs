@@ -4,12 +4,11 @@
     {
         protected WebApplicationFactory<Program> _factory;
         protected WebApplicationFactoryHelper _factoryHelper = new WebApplicationFactoryHelper();
-        protected AuthServiceHelper _authServiceHelper;
         protected HttpClient _client;
         protected string initialDirectory;
 
         [OneTimeSetUp]
-        public void OneTimeSetup()
+        public virtual void OneTimeSetup()
         {
             initialDirectory = Directory.GetCurrentDirectory();
 
@@ -21,13 +20,12 @@
         public async virtual Task Setup()
         {
             _client = _factory.CreateClient();
-            _authServiceHelper = new AuthServiceHelper(_client);
             var sp = _factory.Services;
             using var scope = sp.CreateScope();
             var scopedServices = scope.ServiceProvider;
             var db = scopedServices.GetRequiredService<ApplicationDbContext>();
-            db.Database.EnsureDeleted();
-            db.Database.EnsureCreated();
+            await db.Database.EnsureDeletedAsync();
+            await db.Database.EnsureCreatedAsync();
             SeedDataFromJson.Initialize(scopedServices);
         }
 

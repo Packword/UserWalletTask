@@ -2,30 +2,38 @@ namespace UserWallet.Tests.ControllersTests.Auth
 {
     public class AuthPositiveTests : BaseControllerTest
     {
+        private AuthServiceHelper _authServiceHelper;
+
+        [SetUp]
+        public async override Task Setup()
+        {
+            await base.Setup();
+            _authServiceHelper = new AuthServiceHelper(_client);
+        }
         [Test]
         public async Task PositiveLoginAsAdminTest()
         {
-            var response = await _authServiceHelper.LoginAsync("Admin", "1234");
+            var response = await _authServiceHelper.LoginAsAdmin();
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
 
         [Test]
         public async Task PositiveLoginAsUserTest()
         {
-            var response = await _authServiceHelper.LoginAsync("maxim", "123456");
+            var response = await _authServiceHelper.LoginAsUser();
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
 
         [Test]
         public async Task PositiveChangePasswordTest()
         {
-            await _authServiceHelper.LoginAsync("Admin", "1234");
+            await _authServiceHelper.LoginAsAdmin();
             var requestMessage = new HttpRequestMessage(HttpMethod.Patch, "/auth/change-password");
             requestMessage.Content = JsonContent.Create(new ChangeUserPasswordDTO { NewPassword = "12345" });
             var response = await _client.SendAsync(requestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             await _authServiceHelper.Logout();
-            response = await _authServiceHelper.LoginAsync("Admin", "12345");
+            response = await _authServiceHelper.Login(TestData.ADMIN_USERNAME, "12345");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         }
@@ -33,7 +41,7 @@ namespace UserWallet.Tests.ControllersTests.Auth
         [Test]
         public async Task PositiveLogoutTest()
         {
-            await _authServiceHelper.LoginAsync("Admin", "1234");
+            await _authServiceHelper.LoginAsAdmin();
             HttpResponseMessage response = await _authServiceHelper.Logout();
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -49,7 +57,7 @@ namespace UserWallet.Tests.ControllersTests.Auth
             });
             var response = await _client.SendAsync(requestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            response = await _authServiceHelper.LoginAsync("ForTest", "Test");
+            response = await _authServiceHelper.Login("ForTest", "Test");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
     }

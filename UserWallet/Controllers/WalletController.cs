@@ -56,7 +56,7 @@ namespace UserWallet.Controllers
             return ConvertToBalanceDTO(balances);
         }
 
-        [HttpPut("deposit/{currency}")]
+        [HttpPut("deposit/{currencyId}")]
         [Authorize(Roles = UsersRole.USER)]
         public IActionResult CreateDeposit(string currencyId, [FromBody] DepositDTO depositDTO)
         {
