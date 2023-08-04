@@ -1,6 +1,6 @@
-namespace UserWallet.Tests.ControllersTests
+namespace UserWallet.Tests.ControllersTests.Auth
 {
-    public class AuthTests: BaseControllerTest
+    public class AuthPositiveTests : BaseControllerTest
     {
         [Test]
         public async Task PositiveLoginAsAdminTest()
