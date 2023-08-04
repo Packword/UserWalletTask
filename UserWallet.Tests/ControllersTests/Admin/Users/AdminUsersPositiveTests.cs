@@ -45,7 +45,7 @@
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, "admin/users");
             var response = await _client.SendAsync(requestMessage);
             string content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<List<User>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true})!;
+            return JsonSerializer.Deserialize<List<User>>(content, TestData.JSON_OPTIONS)!;
         }
     }
 }
