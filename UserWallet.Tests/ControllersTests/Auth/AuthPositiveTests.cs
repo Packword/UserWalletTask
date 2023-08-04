@@ -2,14 +2,6 @@ namespace UserWallet.Tests.ControllersTests.Auth
 {
     public class AuthPositiveTests : BaseControllerTest
     {
-        private AuthServiceHelper _authServiceHelper;
-
-        [SetUp]
-        public async override Task Setup()
-        {
-            await base.Setup();
-            _authServiceHelper = new AuthServiceHelper(_client);
-        }
         [Test]
         public async Task PositiveLoginAsAdminTest()
         {

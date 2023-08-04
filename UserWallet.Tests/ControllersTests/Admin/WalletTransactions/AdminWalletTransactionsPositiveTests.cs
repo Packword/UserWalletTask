@@ -6,9 +6,8 @@
         private const int TEST_TRANSACTION_ID = 1;
 
         [SetUp]
-        public async override Task Setup()
+        public new void Setup()
         {
-            await base.Setup();
             _transactionServiceHelper = new TransactionServiceHelper(_client);
         }
 
@@ -65,10 +64,7 @@
 
         private async Task CreateTestTransaction()
         {
-            await _authServiceHelper.Logout();
-            await _authServiceHelper.LoginAsUser();
             await _transactionServiceHelper.CreateCryptoDeposit("btc", 50, "1234567890123456");
-            await _authServiceHelper.Logout();
             await _authServiceHelper.LoginAsAdmin();
         }
     }

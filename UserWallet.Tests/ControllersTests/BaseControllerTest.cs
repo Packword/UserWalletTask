@@ -1,10 +1,10 @@
 ﻿namespace UserWallet.Tests.ControllersTests
 {
-    public class BaseControllerTest
+    public abstract class BaseControllerTest
     {
         protected WebApplicationFactory<Program> _factory;
+        protected AuthServiceHelper _authServiceHelper;
         protected WebApplicationFactoryHelper _factoryHelper = new WebApplicationFactoryHelper();
-        protected ApplicationDbContext db;
         protected HttpClient _client;
         protected string initialDirectory;
 
@@ -18,15 +18,16 @@
         }
 
         [SetUp]
-        public async virtual Task Setup()
+        public void Setup()
         {
             _client = _factory.CreateClient();
+            _authServiceHelper = new AuthServiceHelper(_client);
             var sp = _factory.Services;
             using var scope = sp.CreateScope();
             var scopedServices = scope.ServiceProvider;
-            db = scopedServices.GetRequiredService<ApplicationDbContext>();
-            await db.Database.EnsureDeletedAsync();
-            await db.Database.EnsureCreatedAsync();
+            var db = scopedServices.GetRequiredService<ApplicationDbContext>();
+            db.Database.EnsureDeleted();
+            db.Database.EnsureCreated();
             db.Users.Add(new User
             {
                 Username = TestData.ADMIN_USERNAME,
@@ -47,6 +48,13 @@
                 IsAvailable = true,
                 Type = CurrencyType.Crypto
             });
+            db.Currencies.Add(new Currency
+            {
+                Id = "rub",
+                IsAvailable = true,
+                Type = CurrencyType.Fiat
+            });
+
             db.SaveChanges();
         }
 

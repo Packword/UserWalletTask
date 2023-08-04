@@ -9,5 +9,6 @@
         public const string ADMIN_PASSWORD = "1234";
         public const int ADMIN_ID = 1;
         public const int DEFAULT_USERS_COUNT = 2;
+        public static JsonSerializerOptions JSON_OPTIONS = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
     }
 }

@@ -1,13 +1,10 @@
 ﻿namespace UserWallet.Tests.ControllersTests.Admin
 {
-    public class AdminTest: BaseControllerTest
+    public abstract class AdminTest: BaseControllerTest
     {
-        protected AuthServiceHelper _authServiceHelper;
         [SetUp]
-        public async override Task Setup()
+        public async new Task Setup()
         {
-            await base.Setup();
-            _authServiceHelper = new AuthServiceHelper(_client);
             await _authServiceHelper.LoginAsAdmin();
         }
     }
