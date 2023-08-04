@@ -1,6 +1,4 @@
-﻿using UserWallet.Services.Extensions;
-
-namespace UserWallet.Controllers
+﻿namespace UserWallet.Controllers
 {
     [Route("[controller]")]
     [ApiController]
