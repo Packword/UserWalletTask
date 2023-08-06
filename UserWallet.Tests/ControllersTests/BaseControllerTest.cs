@@ -2,6 +2,7 @@
 {
     public abstract class BaseControllerTest
     {
+        private const string WorkingDirectoryPath = "../../../../UserWallet";
         protected WebApplicationFactory<Program> _factory;
         protected AuthServiceHelper _authServiceHelper;
         protected WebApplicationFactoryHelper _factoryHelper = new WebApplicationFactoryHelper();
@@ -13,7 +14,7 @@
         {
             initialDirectory = Directory.GetCurrentDirectory();
 
-            Directory.SetCurrentDirectory("../../../../UserWallet");
+            Directory.SetCurrentDirectory(WorkingDirectoryPath);
             _factory = _factoryHelper.CreateFactoryWithInMemoryDb();
         }
 
@@ -44,13 +45,13 @@
             }); 
             db.Currencies.Add(new Currency
             {
-                Id = "btc",
+                Id = TestData.CRYPTO_CURRENCY_ID,
                 IsAvailable = true,
                 Type = CurrencyType.Crypto
             });
             db.Currencies.Add(new Currency
             {
-                Id = "rub",
+                Id = TestData.FIAT_CURRENCY_ID,
                 IsAvailable = true,
                 Type = CurrencyType.Fiat
             });
