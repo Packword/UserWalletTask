@@ -1,11 +1,9 @@
 ﻿namespace UserWallet.Tests.Helpers
 {
-    public class AuthServiceHelper
+    public class AuthServiceHelper: BaseApiHelper
     {
-        private readonly HttpClient _client;
-        public AuthServiceHelper(HttpClient client)
+        public AuthServiceHelper(HttpClient client) : base(client)
         {
-            _client = client;
         }
 
         public async Task<HttpResponseMessage> Logout()
@@ -32,6 +30,15 @@
         {
             HttpRequestMessage requestMessage = GenerateLoginRequestMessage(TestData.DEFAULT_USER_USERNAME, TestData.DEFAULT_USER_PASSWORD);
             return await _client.SendAsync(requestMessage);
+        }
+
+        public SignUpDTO CreateSignUpDTO(string username, string password)
+        {
+            return new SignUpDTO
+            {
+                Username = username,
+                Password = password
+            };
         }
 
         private static HttpRequestMessage GenerateLoginRequestMessage(string username, string password)

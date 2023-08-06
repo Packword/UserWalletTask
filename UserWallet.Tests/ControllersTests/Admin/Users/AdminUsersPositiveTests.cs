@@ -1,30 +1,73 @@
 ﻿namespace UserWallet.Tests.ControllersTests.Admin
 {
-    public class AdminUsersPositiveTests: AdminTest
+    public class AdminUsersPositiveTests: BaseControllerTest
     {
         [Test]
-        public async Task PositiveGetUsersTest()
+        public async Task GetUsers_AsAdmin_Success()
         {
+            await _authServiceHelper.LoginAsAdmin();
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, "admin/users");
+
+            var response = await _client.SendAsync(requestMessage);
+
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
             var users = await GetUsers();
             users.Count.Should().Be(TestData.DEFAULT_USERS_COUNT);
         }
 
         [Test]
-        public async Task PositiveBlockUserTest()
+        public async Task GetUsers_AsAdmin_ReturnsCorrectUsersCount()
         {
-            var response = await BlockUser(TestData.DEFAULT_USER_ID);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            await _authServiceHelper.LoginAsAdmin();
+            
             var users = await GetUsers();
+
+            users.Count.Should().Be(TestData.DEFAULT_USERS_COUNT);
+        }
+
+        [Test]
+        public async Task Block_User_Success()
+        {
+            await _authServiceHelper.LoginAsAdmin();
+
+            var response = await BlockUser(TestData.DEFAULT_USER_ID);
+
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
+        [Test]
+        public async Task Block_User_HasBecomeBlocked()
+        {
+            await _authServiceHelper.LoginAsAdmin();
+
+            await BlockUser(TestData.DEFAULT_USER_ID);
+            var users = await GetUsers();
+
             users.First(u => u.Id == TestData.DEFAULT_USER_ID).IsBlocked.Should().Be(true);
         }
 
         [Test]
-        public async Task PositiveUnblockUserTest()
+        public async Task Unblock_User_Success()
         {
-            var response = await BlockUser(TestData.DEFAULT_USER_ID);
-            response = await UnblockUser(TestData.DEFAULT_USER_ID);
+            await _authServiceHelper.LoginAsAdmin();
+            await BlockUser(TestData.DEFAULT_USER_ID);
+
+            var response = await UnblockUser(TestData.DEFAULT_USER_ID);
+
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var users = await GetUsers();
+            users.First(u => u.Id == TestData.DEFAULT_USER_ID).IsBlocked.Should().Be(false);
+        }
+
+        [Test]
+        public async Task Unblock_User_HasBecomeUnblocked()
+        {
+            await _authServiceHelper.LoginAsAdmin();
+            await BlockUser(TestData.DEFAULT_USER_ID);
+
+            await UnblockUser(TestData.DEFAULT_USER_ID);
+            var users = await GetUsers();
+
             users.First(u => u.Id == TestData.DEFAULT_USER_ID).IsBlocked.Should().Be(false);
         }
 
