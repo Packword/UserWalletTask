@@ -1,13 +1,11 @@
 ﻿namespace UserWallet.Tests.ControllersTests.Rates
 {
-    public class RatesPositiveTests: BaseControllerTest
+    public class RatesTests: BaseControllerTest
     {
         [Test]
         public async Task GetRates_AvailableCurrency_Success()
         {
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"/rates");
-
-            var response = await _client.SendAsync(requestMessage);
+            var response = await _client.GetAsync("/rates");
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -15,14 +13,13 @@
         [Test]
         public async Task GetRates_AvailableCurrency_MustContain()
         {
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"/rates");
+            var response = await _client.GetAsync("/rates");
+            var rates = await response.Content.ReadFromJsonAsync<CurrentRateDTO>(TestOptions.JSON_OPTIONS);
 
-            var response = await _client.SendAsync(requestMessage);
-            var content = await response.Content.ReadAsStringAsync();
-            var rates = JsonSerializer.Deserialize<CurrentRateDTO>(content, TestData.JSON_OPTIONS);
+            rates.Should().NotBeNull();
+            rates!.Rates.Should().ContainKey(CRYPTO_CURRENCY_ID); 
+            rates.Rates.Should().ContainKey(FIAT_CURRENCY_ID);
 
-            rates!.Rates.ContainsKey(TestData.CRYPTO_CURRENCY_ID).Should().Be(true);
-            rates.Rates.ContainsKey(TestData.FIAT_CURRENCY_ID).Should().Be(true);
         }
     }
 }

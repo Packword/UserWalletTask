@@ -1,8 +1,8 @@
 ﻿namespace UserWallet.Tests.Helpers
 {
-    public class WebApplicationFactoryHelper
+    public static class WebApplicationFactoryHelper
     {
-        public WebApplicationFactory<Program> CreateFactoryWithInMemoryDb()
+        public static WebApplicationFactory<Program> CreateFactoryWithInMemoryDb()
         {
             return new WebApplicationFactory<Program>().WithWebHostBuilder(
                     b =>

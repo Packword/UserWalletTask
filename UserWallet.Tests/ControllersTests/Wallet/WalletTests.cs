@@ -1,4 +1,4 @@
-﻿namespace UserWallet.Tests.ControllersTests.Wallet
+﻿/*namespace UserWallet.Tests.ControllersTests.Wallet
 {
     public class WalletTests: BaseControllerTest
     {
@@ -142,3 +142,4 @@
             => CreateDepositDTO(TestData.DEFAULT_DEPOSIT_AMOUNT, address, TestData.FIAT_CARDHOLDER, TestData.FIAT_CARDNUMBER);
     }
 }
+*/

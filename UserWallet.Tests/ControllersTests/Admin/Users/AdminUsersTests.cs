@@ -1,36 +1,34 @@
 ﻿namespace UserWallet.Tests.ControllersTests.Admin
 {
-    public class AdminUsers: BaseControllerTest
+    public class AdminUsersTests: BaseControllerTest
     {
         [Test]
         public async Task GetUsers_AsAdmin_Success()
         {
-            await _authServiceHelper.LoginAsAdmin();
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, "admin/users");
+            await LoginAsAdmin(_client);
 
-            var response = await _client.SendAsync(requestMessage);
+            var response = await _client.GetAsync("admin/users");
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            var users = await GetUsers();
-            users.Count.Should().Be(TestData.DEFAULT_USERS_COUNT);
         }
 
         [Test]
         public async Task GetUsers_AsAdmin_ReturnsCorrectUsersCount()
         {
-            await _authServiceHelper.LoginAsAdmin();
+            await LoginAsAdmin(_client);
             
             var users = await GetUsers();
 
-            users.Count.Should().Be(TestData.DEFAULT_USERS_COUNT);
+            users.Should().NotBeNull();
+            users!.Should().HaveCount(DEFAULT_USERS_COUNT);
         }
 
         [Test]
         public async Task Block_User_Success()
         {
-            await _authServiceHelper.LoginAsAdmin();
+            await LoginAsAdmin(_client);
 
-            var response = await BlockUser(TestData.DEFAULT_USER_ID);
+            var response = await BlockUser(DEFAULT_USER_ID);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -38,57 +36,52 @@
         [Test]
         public async Task Block_User_HasBecomeBlocked()
         {
-            await _authServiceHelper.LoginAsAdmin();
+            await LoginAsAdmin(_client);
 
-            await BlockUser(TestData.DEFAULT_USER_ID);
+            await BlockUser(DEFAULT_USER_ID);
             var users = await GetUsers();
 
-            users.First(u => u.Id == TestData.DEFAULT_USER_ID).IsBlocked.Should().Be(true);
+            users.Should().NotBeNull();
+            var user = users!.FirstOrDefault(u => u.Id == DEFAULT_USER_ID);
+            user.Should().NotBeNull();
+            user!.IsBlocked.Should().BeTrue();
         }
 
         [Test]
         public async Task Unblock_User_Success()
         {
-            await _authServiceHelper.LoginAsAdmin();
-            await BlockUser(TestData.DEFAULT_USER_ID);
+            await LoginAsAdmin(_client);
 
-            var response = await UnblockUser(TestData.DEFAULT_USER_ID);
+            var response = await UnblockUser(DEFAULT_USER_ID);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            var users = await GetUsers();
-            users.First(u => u.Id == TestData.DEFAULT_USER_ID).IsBlocked.Should().Be(false);
         }
 
         [Test]
         public async Task Unblock_User_HasBecomeUnblocked()
         {
-            await _authServiceHelper.LoginAsAdmin();
-            await BlockUser(TestData.DEFAULT_USER_ID);
+            await LoginAsAdmin(_client);
+            await BlockUser(DEFAULT_USER_ID);
 
-            await UnblockUser(TestData.DEFAULT_USER_ID);
+            await UnblockUser(DEFAULT_USER_ID);
             var users = await GetUsers();
 
-            users.First(u => u.Id == TestData.DEFAULT_USER_ID).IsBlocked.Should().Be(false);
+            users.Should().NotBeNull();
+            var user = users!.FirstOrDefault(u => u.Id == DEFAULT_USER_ID);
+            user.Should().NotBeNull();
+            user!.IsBlocked.Should().BeFalse();
         }
 
         private async Task<HttpResponseMessage> BlockUser(int userId)
-        {
-            var requestMessage = new HttpRequestMessage(HttpMethod.Patch, $"admin/users/block/{userId}");
-            return await _client.SendAsync(requestMessage);
-        }
+            => await _client.PatchAsJsonAsync($"admin/users/block/{userId}", "");
 
         private async Task<HttpResponseMessage> UnblockUser(int userId)
-        {
-            var requestMessage = new HttpRequestMessage(HttpMethod.Patch, $"admin/users/unblock/{userId}");
-            return await _client.SendAsync(requestMessage);
-        }
+            => await _client.PatchAsJsonAsync($"admin/users/unblock/{userId}", "");
 
-        private async Task<List<User>> GetUsers()
+        private async Task<List<User>?> GetUsers()
         {
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, "admin/users");
-            var response = await _client.SendAsync(requestMessage);
-            string content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<List<User>>(content, TestData.JSON_OPTIONS)!;
+            var response = await _client.GetAsync("admin/users");
+            return await response.Content.ReadFromJsonAsync<List<User>>(TestOptions.JSON_OPTIONS);
         }
     }
 }

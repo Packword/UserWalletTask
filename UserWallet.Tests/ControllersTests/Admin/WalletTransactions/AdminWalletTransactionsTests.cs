@@ -1,24 +1,21 @@
 ﻿namespace UserWallet.Tests.ControllersTests.Admin
 {
-    public class AdminWalletTransactionsPositiveTests: BaseControllerTest
+    public class AdminWalletTransactionsTests: BaseControllerTest
     {
-        private TransactionServiceHelper _transactionServiceHelper;
-        private BalanceServiceHelper _balanceServiceHelper;
         private const int TEST_TRANSACTION_ID = 1;
+        private const int TEST_TRANSACTION_COUNT = 1;
 
         [SetUp]
         public new void Setup()
         {
-            _transactionServiceHelper = new TransactionServiceHelper(_client);
-            _balanceServiceHelper = new BalanceServiceHelper(_client);
         }
 
         [Test]
         public async Task GetTransactions_AsAdmin_Success()
         {
-            await _authServiceHelper.LoginAsAdmin();
+            await LoginAsAdmin(_client);    
 
-            var response = await SendGetTransactionsRequest();
+            var response = await _client.GetAsync("admin/wallet/tx");
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -26,22 +23,28 @@
         [Test]
         public async Task GetTransactions_AsAdmin_ReturnedTransactionsCorrect()
         {
-            await _authServiceHelper.LoginAsAdmin();
-            await CreateTestCryptoTransaction();
+            using var userClient = new HttpClient();
+            await LoginAsAdmin(_client);
+            await LoginAsUser(userClient);
+            await CreateTestCryptoTransaction(userClient);
 
-            var transactions = await GetTransactions();
+            var transactions = await _client.GetTransactions();
 
-            transactions!.Count.Should().Be(TEST_TRANSACTION_ID);
-            transactions.First(u => u.Id == TEST_TRANSACTION_ID).Status.Should().Be(DepositStatus.Undecided);
+            transactions.Should().NotBeNull().And.HaveCount(TEST_TRANSACTION_COUNT);
+            var transaction = transactions!.FirstOrDefault(u => u.Id == TEST_TRANSACTION_ID);
+            transaction.Should().NotBeNull();
+            transaction!.Status.Should().Be(DepositStatus.Undecided);
         }
 
         [Test]
         public async Task ApproveTransaction_AsAdmin_Success()
         {
-            await _authServiceHelper.LoginAsAdmin();
-            await CreateTestCryptoTransaction();
+            using var userClient = new HttpClient();
+            await LoginAsAdmin(_client);
+            await LoginAsUser(userClient);
+            await CreateTestCryptoTransaction(userClient);
 
-            var response = await ApproveTransaction(TEST_TRANSACTION_ID);
+            var response = await _client.ApproveTransaction(TEST_TRANSACTION_ID);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -49,34 +52,44 @@
         [Test]
         public async Task ApproveTransaction_AsAdmin_TransactionHasBecomeApproved()
         {
-            await _authServiceHelper.LoginAsAdmin();
-            await CreateTestCryptoTransaction();
+            using var userClient = new HttpClient();
+            await LoginAsAdmin(_client);
+            await LoginAsUser(userClient);
+            await CreateTestCryptoTransaction(userClient);
 
-            await ApproveTransaction(TEST_TRANSACTION_ID);
-            var transactions = await GetTransactions();
+            await _client.ApproveTransaction(TEST_TRANSACTION_ID);
+            var transactions = await _client.GetTransactions();
 
-            transactions!.First(u => u.Id == TEST_TRANSACTION_ID).Status.Should().Be(DepositStatus.Approved);
+            transactions.Should().NotBeNull().And.HaveCount(TEST_TRANSACTION_COUNT);
+            var transaction = transactions!.FirstOrDefault(u => u.Id == TEST_TRANSACTION_ID);
+            transaction.Should().NotBeNull();
+            transaction!.Status.Should().Be(DepositStatus.Approved);
         }
 
         [Test]
         public async Task ApproveTransaction_AsAdmin_BalanceHasChanged()
         {
-            await _authServiceHelper.LoginAsAdmin();
-            await CreateTestCryptoTransaction();
+            using var userClient = new HttpClient();
+            await LoginAsAdmin(_client);
+            await LoginAsUser(userClient);
+            await CreateTestCryptoTransaction(userClient);
 
-            await ApproveTransaction(TEST_TRANSACTION_ID);
-            var userBalances = await _balanceServiceHelper.GetUserBalance(TestData.DEFAULT_USER_ID);
+            await _client.ApproveTransaction(TEST_TRANSACTION_ID);
+            var userBalances = await _client.GetUserBalance(DEFAULT_USER_ID);
 
-            userBalances![TestData.CRYPTO_CURRENCY_ID].Amount.Should().Be(TestData.DEFAULT_DEPOSIT_AMOUNT);
+            userBalances.Should().NotBeNull().And.ContainKey(CRYPTO_CURRENCY_ID);
+            userBalances![CRYPTO_CURRENCY_ID].Amount.Should().Be(DEFAULT_DEPOSIT_AMOUNT);
         }
 
         [Test]
         public async Task DeclineTransaction_AsAdmin_Success()
         {
-            await _authServiceHelper.LoginAsAdmin();
-            await CreateTestCryptoTransaction();
+            using var userClient = new HttpClient();
+            await LoginAsAdmin(_client);
+            await LoginAsUser(userClient);
+            await CreateTestCryptoTransaction(userClient);
 
-            var response = await DeclineTransaction(TEST_TRANSACTION_ID);
+            var response = await _client.DeclineTransaction(TEST_TRANSACTION_ID);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -84,59 +97,41 @@
         [Test]
         public async Task DeclineTransaction_AsAdmin_TransactionHasBecomeDeclined()
         {
-            await _authServiceHelper.LoginAsAdmin();
-            await CreateTestCryptoTransaction();
+            using var userClient = new HttpClient();
+            await LoginAsAdmin(_client);
+            await LoginAsUser(userClient);
+            await CreateTestCryptoTransaction(userClient);
 
-            await DeclineTransaction(TEST_TRANSACTION_ID);
-            var transactions = await GetTransactions();
+            await _client.DeclineTransaction(TEST_TRANSACTION_ID);
+            var transactions = await _client.GetTransactions();
 
-            transactions!.First(u => u.Id == TEST_TRANSACTION_ID).Status.Should().Be(DepositStatus.Declined);
+            transactions.Should().NotBeNull();
+            var transaction = transactions!.FirstOrDefault(u => u.Id == TEST_TRANSACTION_ID);
+            transaction.Should().NotBeNull();
+            transaction!.Status.Should().Be(DepositStatus.Declined);
         }
 
         [Test]
         public async Task DeclineTransaction_AsAdmin_BalanceHasNotChanged()
         {
-            await _authServiceHelper.LoginAsAdmin();
-            await CreateTestCryptoTransaction();
+            using var userClient = new HttpClient();
+            await LoginAsAdmin(_client);
+            await LoginAsUser(userClient);
+            await CreateTestCryptoTransaction(userClient);
 
-            await DeclineTransaction(TEST_TRANSACTION_ID);
-            var userBalances = await _balanceServiceHelper.GetUserBalance(TestData.DEFAULT_USER_ID);
+            await _client.DeclineTransaction(TEST_TRANSACTION_ID);
+            var userBalances = await _client.GetUserBalance(DEFAULT_USER_ID);
 
-            userBalances!.ContainsKey(TestData.CRYPTO_CURRENCY_ID).Should().Be(false);
+            userBalances.Should().NotBeNull().And.NotContainKey(CRYPTO_CURRENCY_ID);
         }
 
-        private async Task<HttpResponseMessage> DeclineTransaction(int txId)
-        {
-            var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"admin/wallet/tx/decline/{txId}");
-            return await _client.SendAsync(requestMessage);
-        }
-
-        private async Task<HttpResponseMessage> ApproveTransaction(int txId)
-        {
-            var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"admin/wallet/tx/approve/{txId}");
-            return await _client.SendAsync(requestMessage);
-        }
-
-        private async Task<List<Deposit>?> GetTransactions()
-        {
-            var response = await SendGetTransactionsRequest();
-            string content = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<List<Deposit>?>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            return result;
-        }
-
-        private async Task<HttpResponseMessage> SendGetTransactionsRequest()
-        {
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, "admin/wallet/tx");
-            return await _client.SendAsync(requestMessage);
-        }
-
-        private async Task CreateTestCryptoTransaction()
-        {
-            await _transactionServiceHelper.CreateCryptoDepositAsDefaultUser(TestData.CRYPTO_CURRENCY_ID,
-                                                                TestData.DEFAULT_DEPOSIT_AMOUNT,
-                                                                TestData.CRYPTO_ADDRESS);
-            await _authServiceHelper.LoginAsAdmin();
-        }
+        private async Task CreateTestCryptoTransaction(HttpClient client)
+           => await client.CreateDeposit(CRYPTO_CURRENCY_ID,
+                                          TransactionServiceHelper.CreateDepositDTO(
+                                              DEFAULT_DEPOSIT_AMOUNT,
+                                              CRYPTO_ADDRESS,
+                                              null,
+                                              null
+                                          ));
     }
 }
