@@ -1,6 +1,6 @@
 ﻿namespace UserWallet.Tests.ControllersTests.Admin
 {
-    public class AdminUsersPositiveTests: BaseControllerTest
+    public class AdminUsers: BaseControllerTest
     {
         [Test]
         public async Task GetUsers_AsAdmin_Success()
