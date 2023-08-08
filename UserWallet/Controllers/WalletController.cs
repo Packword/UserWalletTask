@@ -87,7 +87,22 @@
             return Ok();
         }
 
-        private Dictionary<string, BalanceDTO>? ConvertToBalanceDTO(List<UserBalance> balances)
-            => _convertToUsdService.ConvertCurrency(balances.ToDictionary(key => key.CurrencyId, value => value.Amount));
+        private Dictionary<string, BalanceDTO> ConvertToBalanceDTO(List<UserBalance>? balances)
+        {
+            if (balances is null)
+                return new Dictionary<string, BalanceDTO>();
+
+            var usdBalances = _convertToUsdService.ConvertCurrency(balances.Select(x => (x.CurrencyId, x.Amount)).ToList());
+            var balancesZip = usdBalances.Zip(balances);
+
+            return balancesZip.ToDictionary(
+                    key => key.First.CurrencyId,
+                    value => new BalanceDTO
+                    {
+                        Amount = value.Second.Amount,
+                        UsdAmount = value.First.UsdAmount
+                    }
+                );
+        }
     }
 }
