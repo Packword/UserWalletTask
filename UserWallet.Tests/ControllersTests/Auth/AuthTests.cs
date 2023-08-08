@@ -1,11 +1,11 @@
 namespace UserWallet.Tests.ControllersTests.Auth
 {
-    public class Auth : BaseControllerTest
+    public class AuthTests : BaseControllerTest
     {
         [Test]
         public async Task Login_AsAdmin_Success()
         {
-            var response = await _authServiceHelper.LoginAsAdmin();
+            var response = await LoginAsAdmin(_client);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -13,7 +13,7 @@ namespace UserWallet.Tests.ControllersTests.Auth
         [Test]
         public async Task Login_AsUser_Success()
         {
-            var response = await _authServiceHelper.LoginAsUser();
+            var response = await LoginAsUser(_client);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -21,11 +21,12 @@ namespace UserWallet.Tests.ControllersTests.Auth
         [Test]
         public async Task ChangePassword_AsAdmin_Success()
         {
-            await _authServiceHelper.LoginAsAdmin();
-            var requestMessage = new HttpRequestMessage(HttpMethod.Patch, "/auth/change-password");
-            requestMessage.Content = JsonContent.Create(new ChangeUserPasswordDTO { NewPassword = "12345" });
+            await LoginAsAdmin(_client);
 
-            var response = await _client.SendAsync(requestMessage);
+            var response = await _client.PatchAsJsonAsync(
+                "/auth/change-password", 
+                JsonSerializer.Serialize(new ChangeUserPasswordDTO { NewPassword = "12345" })
+            );
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -33,13 +34,14 @@ namespace UserWallet.Tests.ControllersTests.Auth
         [Test]
         public async Task ChangePassword_AsAdmin_SuccessLoginWithNewPassword()
         {
-            await _authServiceHelper.LoginAsAdmin();
-            var requestMessage = new HttpRequestMessage(HttpMethod.Patch, "/auth/change-password");
-            requestMessage.Content = JsonContent.Create(new ChangeUserPasswordDTO { NewPassword = "12345" });
-            await _client.SendAsync(requestMessage);
-            await _authServiceHelper.Logout();
+            await LoginAsAdmin(_client);
+            await _client.PatchAsJsonAsync(
+                "/auth/change-password",
+                JsonSerializer.Serialize(new ChangeUserPasswordDTO { NewPassword = "12345" })
+            );
+            await _client.Logout();
 
-            var response = await _authServiceHelper.Login(TestData.ADMIN_USERNAME, "12345");
+            var response = await _client.Login(ADMIN_USERNAME, "12345");
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -47,9 +49,9 @@ namespace UserWallet.Tests.ControllersTests.Auth
         [Test]
         public async Task Logout_FromAdmin_Success()
         {
-            await _authServiceHelper.LoginAsAdmin();
+            await LoginAsAdmin(_client);
 
-            var response = await _authServiceHelper.Logout();
+            var response = await _client.Logout();
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -57,11 +59,9 @@ namespace UserWallet.Tests.ControllersTests.Auth
         [Test]
         public async Task SignUp_CorrectUser_Success()
         {
-            var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/auth/sign-up");
-            var testUser = _authServiceHelper.CreateSignUpDTO("ForTest", "Test");
-            requestMessage.Content = JsonContent.Create(testUser);
+            var testUser = CreateSignUpDTO("ForTest", "Test");
 
-            var response = await _client.SendAsync(requestMessage);
+            var response = await _client.PostAsJsonAsync("/auth/sign-up", JsonSerializer.Serialize(testUser));
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -69,14 +69,21 @@ namespace UserWallet.Tests.ControllersTests.Auth
         [Test]
         public async Task SignUp_CorrectUser_SuccessLoginAsNewUser()
         {
-            var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/auth/sign-up");
-            var testUser = _authServiceHelper.CreateSignUpDTO("ForTest", "Test");
-            requestMessage.Content = JsonContent.Create(testUser);
-            await _client.SendAsync(requestMessage);
+            var testUser = CreateSignUpDTO("ForTest", "Test");
+            await _client.PostAsJsonAsync("/auth/sign-up", JsonSerializer.Serialize(testUser));
 
-            var response = await _authServiceHelper.Login("ForTest", "Test");
+            var response = await _client.Login("ForTest", "Test");
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
+        private SignUpDTO CreateSignUpDTO(string username, string password)
+        {
+            return new SignUpDTO
+            {
+                Username = username,
+                Password = password
+            };
         }
     }
 }

@@ -16,3 +16,4 @@ global using System.ComponentModel.DataAnnotations.Schema;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.AspNetCore.Mvc.Testing;
 global using Microsoft.EntityFrameworkCore.InMemory;
+global using UserWallet.Tests.Extensions;
