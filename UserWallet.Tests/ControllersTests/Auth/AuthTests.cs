@@ -1,6 +1,6 @@
 namespace UserWallet.Tests.ControllersTests.Auth
 {
-    public class AuthPositiveTests : BaseControllerTest
+    public class Auth : BaseControllerTest
     {
         [Test]
         public async Task Login_AsAdmin_Success()

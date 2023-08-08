@@ -1,6 +1,6 @@
 ﻿namespace UserWallet.Tests.ControllersTests.Wallet
 {
-    public class WalletPositiveTests: BaseControllerTest
+    public class WalletTests: BaseControllerTest
     {
         private TransactionServiceHelper _transactionServiceHelper;
         private BalanceServiceHelper _balanceServiceHelper;
