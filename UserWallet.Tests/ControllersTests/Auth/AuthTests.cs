@@ -25,7 +25,7 @@ namespace UserWallet.Tests.ControllersTests.Auth
 
             var response = await _client.PatchAsJsonAsync(
                 "/auth/change-password", 
-                JsonSerializer.Serialize(new ChangeUserPasswordDTO { NewPassword = "12345" })
+                new ChangeUserPasswordDTO { NewPassword = "12345" }
             );
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -37,7 +37,7 @@ namespace UserWallet.Tests.ControllersTests.Auth
             await LoginAsAdmin(_client);
             await _client.PatchAsJsonAsync(
                 "/auth/change-password",
-                JsonSerializer.Serialize(new ChangeUserPasswordDTO { NewPassword = "12345" })
+                new ChangeUserPasswordDTO { NewPassword = "12345" }
             );
             await _client.Logout();
 
@@ -61,7 +61,7 @@ namespace UserWallet.Tests.ControllersTests.Auth
         {
             var testUser = CreateSignUpDTO("ForTest", "Test");
 
-            var response = await _client.PostAsJsonAsync("/auth/sign-up", JsonSerializer.Serialize(testUser));
+            var response = await _client.PostAsJsonAsync("/auth/sign-up", testUser);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -70,7 +70,7 @@ namespace UserWallet.Tests.ControllersTests.Auth
         public async Task SignUp_CorrectUser_SuccessLoginAsNewUser()
         {
             var testUser = CreateSignUpDTO("ForTest", "Test");
-            await _client.PostAsJsonAsync("/auth/sign-up", JsonSerializer.Serialize(testUser));
+            await _client.PostAsJsonAsync("/auth/sign-up", testUser);
 
             var response = await _client.Login("ForTest", "Test");
 
@@ -78,12 +78,10 @@ namespace UserWallet.Tests.ControllersTests.Auth
         }
 
         private SignUpDTO CreateSignUpDTO(string username, string password)
-        {
-            return new SignUpDTO
+            => new SignUpDTO
             {
                 Username = username,
                 Password = password
             };
-        }
     }
 }

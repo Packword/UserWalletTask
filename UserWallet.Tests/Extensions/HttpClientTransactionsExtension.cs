@@ -3,11 +3,11 @@
     public static class HttpClientTransactionsExtension
     {
         public async static Task<HttpResponseMessage> CreateDeposit(this HttpClient client, string currencyId, DepositDTO deposit)
-            => await client.PutAsJsonAsync($"/wallet/deposit/{currencyId}", JsonSerializer.Serialize(deposit));
+            => await client.PutAsJsonAsync($"/wallet/deposit/{currencyId}", deposit);
 
         public async static Task<List<Deposit>?> GetCurrentUserDeposits(this HttpClient client)
         {
-            var response = await client.GetAsync("wsllet/tx");
+            var response = await client.GetAsync("wallet/tx");
             return await response.Content.ReadFromJsonAsync<List<Deposit>>(TestOptions.JSON_OPTIONS);
         }
 

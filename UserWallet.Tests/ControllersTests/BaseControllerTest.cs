@@ -1,13 +1,13 @@
-﻿namespace UserWallet.Tests.ControllersTests
+﻿using NUnit.Framework.Internal;
+
+namespace UserWallet.Tests.ControllersTests
 {
     public abstract class BaseControllerTest
     {
         private const string WorkingDirectoryPath = "../../../../UserWallet";
 
-        private WebApplicationFactory<Program> _factory;
         private string initialDirectory;
 
-        protected readonly Uri  BaseAddress = new Uri("http://localhost:5140");
         protected const string  DEFAULT_USER_USERNAME = "maxim";
         protected const string  DEFAULT_USER_PASSWORD = "123456";
         protected const string  DEFAULT_USER_ROLE = UsersRole.USER;
@@ -24,6 +24,7 @@
         protected const string  FIAT_CARDNUMBER = "1234567890123456";
         protected const decimal DEFAULT_DEPOSIT_AMOUNT = 50;
 
+        protected WebApplicationFactory<Program> _factory;
         protected HttpClient _client;
 
         [OneTimeSetUp]
@@ -38,7 +39,7 @@
         [SetUp]
         public void Setup()
         {
-            _client = new HttpClient();
+            _client = _factory.CreateClient(); ;
 
             var sp = _factory.Services;
             using var scope = sp.CreateScope();

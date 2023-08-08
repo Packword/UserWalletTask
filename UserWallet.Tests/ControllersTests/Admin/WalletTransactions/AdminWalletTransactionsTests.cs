@@ -5,11 +5,6 @@
         private const int TEST_TRANSACTION_ID = 1;
         private const int TEST_TRANSACTION_COUNT = 1;
 
-        [SetUp]
-        public new void Setup()
-        {
-        }
-
         [Test]
         public async Task GetTransactions_AsAdmin_Success()
         {
@@ -23,10 +18,8 @@
         [Test]
         public async Task GetTransactions_AsAdmin_ReturnedTransactionsCorrect()
         {
-            using var userClient = new HttpClient();
             await LoginAsAdmin(_client);
-            await LoginAsUser(userClient);
-            await CreateTestCryptoTransaction(userClient);
+            await CreateUserClientAndCreateDeposit();
 
             var transactions = await _client.GetTransactions();
 
@@ -36,13 +29,13 @@
             transaction!.Status.Should().Be(DepositStatus.Undecided);
         }
 
+        
+
         [Test]
         public async Task ApproveTransaction_AsAdmin_Success()
         {
-            using var userClient = new HttpClient();
             await LoginAsAdmin(_client);
-            await LoginAsUser(userClient);
-            await CreateTestCryptoTransaction(userClient);
+            await CreateUserClientAndCreateDeposit();
 
             var response = await _client.ApproveTransaction(TEST_TRANSACTION_ID);
 
@@ -52,10 +45,8 @@
         [Test]
         public async Task ApproveTransaction_AsAdmin_TransactionHasBecomeApproved()
         {
-            using var userClient = new HttpClient();
             await LoginAsAdmin(_client);
-            await LoginAsUser(userClient);
-            await CreateTestCryptoTransaction(userClient);
+            await CreateUserClientAndCreateDeposit();
 
             await _client.ApproveTransaction(TEST_TRANSACTION_ID);
             var transactions = await _client.GetTransactions();
@@ -69,10 +60,8 @@
         [Test]
         public async Task ApproveTransaction_AsAdmin_BalanceHasChanged()
         {
-            using var userClient = new HttpClient();
             await LoginAsAdmin(_client);
-            await LoginAsUser(userClient);
-            await CreateTestCryptoTransaction(userClient);
+            await CreateUserClientAndCreateDeposit();
 
             await _client.ApproveTransaction(TEST_TRANSACTION_ID);
             var userBalances = await _client.GetUserBalance(DEFAULT_USER_ID);
@@ -84,10 +73,8 @@
         [Test]
         public async Task DeclineTransaction_AsAdmin_Success()
         {
-            using var userClient = new HttpClient();
             await LoginAsAdmin(_client);
-            await LoginAsUser(userClient);
-            await CreateTestCryptoTransaction(userClient);
+            await CreateUserClientAndCreateDeposit();
 
             var response = await _client.DeclineTransaction(TEST_TRANSACTION_ID);
 
@@ -97,10 +84,8 @@
         [Test]
         public async Task DeclineTransaction_AsAdmin_TransactionHasBecomeDeclined()
         {
-            using var userClient = new HttpClient();
             await LoginAsAdmin(_client);
-            await LoginAsUser(userClient);
-            await CreateTestCryptoTransaction(userClient);
+            await CreateUserClientAndCreateDeposit();
 
             await _client.DeclineTransaction(TEST_TRANSACTION_ID);
             var transactions = await _client.GetTransactions();
@@ -114,15 +99,20 @@
         [Test]
         public async Task DeclineTransaction_AsAdmin_BalanceHasNotChanged()
         {
-            using var userClient = new HttpClient();
             await LoginAsAdmin(_client);
-            await LoginAsUser(userClient);
-            await CreateTestCryptoTransaction(userClient);
+            await CreateUserClientAndCreateDeposit();
 
             await _client.DeclineTransaction(TEST_TRANSACTION_ID);
             var userBalances = await _client.GetUserBalance(DEFAULT_USER_ID);
 
             userBalances.Should().NotBeNull().And.NotContainKey(CRYPTO_CURRENCY_ID);
+        }
+
+        private async Task CreateUserClientAndCreateDeposit()
+        {
+            using var userClient = _factory.CreateClient();
+            await LoginAsUser(userClient);
+            await CreateTestCryptoTransaction(userClient);
         }
 
         private async Task CreateTestCryptoTransaction(HttpClient client)
