@@ -87,7 +87,7 @@
         private class TmpCurrency
         {
             public string Id { get; set; } = null!;
-            public string Type { get; set; }
+            public string Type { get; set; } = null!;
         }
     }
 }
