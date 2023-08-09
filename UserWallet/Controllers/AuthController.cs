@@ -1,12 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using UserWallet.DTOs;
-using UserWallet.Interfaces;
-using UserWallet.Models;
+﻿using UserWallet.Services.Extensions;
 
 namespace UserWallet.Controllers
 {
@@ -15,30 +7,35 @@ namespace UserWallet.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
-        public AuthController(IUserService userService)
+        private readonly IUserBalanceService _userBalanceService;
+
+        public AuthController(IUserService userService, IUserBalanceService userBalanceService)
         {
             _userService = userService;
+            _userBalanceService = userBalanceService;
         }
 
         [HttpPost("sign-up")]
-        public IActionResult Add([FromBody] AddUserDTO userDto)
+        public IActionResult Add([FromBody] SignInDTO userDto)
         {
             if(!ModelState.IsValid)
-                return BadRequest();
+                return BadRequest(ModelState.Values.SelectMany(v => v.Errors));
 
             var result = _userService.AddUser(userDto.Username, userDto.Password);
             if (!result)
-                return BadRequest();
+                return BadRequest("The user already exists");
 
             return Ok();
         }
 
         [HttpPost("login")]
-        async public Task<IActionResult> Login([FromBody] UserDTO userDto)
+        async public Task<IActionResult> Login([FromBody] LoginDTO userDto)
         {
             User? user = _userService.GetUserByNameAndPassword(userDto.Username, userDto.Password);
             if (user is null)
                 return Unauthorized();
+
+            user.Balances = _userBalanceService.GetUserBalances(user.Id);
 
             var claims = new List<Claim>
             {
@@ -66,9 +63,9 @@ namespace UserWallet.Controllers
         public IActionResult ChangePassword(string newPassword)
         {
             if(!ModelState.IsValid)
-                return BadRequest();
+                return BadRequest(ModelState.Values.SelectMany(v => v.Errors));
 
-            _userService.ChangePassword(newPassword, HttpContext);
+            _userService.ChangePassword(HttpContext.GetCurrentUserId(), newPassword);
             return Ok();
         }
     }

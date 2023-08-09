@@ -2,7 +2,7 @@
 {
     public class BalanceDTO
     {
-        public decimal Balance { get; set; }
+        public decimal Amount { get; set; }
         public decimal UsdAmount { get; set; }
     }
 }

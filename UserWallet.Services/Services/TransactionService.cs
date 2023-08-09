@@ -3,22 +3,19 @@
     public class TransactionService : ITransactionService
     {
         private readonly ApplicationDbContext _db;
-        private readonly IUserService _userService;
+        private readonly IUserBalanceService _userBalanceService;
 
-        public TransactionService(ApplicationDbContext db, IUserService userService)
+        public TransactionService(ApplicationDbContext db, IUserBalanceService userBalanceService)
         {
             _db = db;
-            _userService = userService;
+            _userBalanceService = userBalanceService;
         }
 
-        public List<Deposit>? GetAllDeposits()
-        {
-            return _db.Deposits.ToList();
-        }
-        public List<Deposit>? GetUserDeposits(int userId)
-        {
-            return _db.Deposits.Where(d => d.UserId == userId).ToList();
-        }
+        public List<Deposit> GetAllDeposits()
+            => _db.Deposits.ToList();
+
+        public List<Deposit> GetUserDeposits(int userId)
+            => _db.Deposits.Where(d => d.UserId == userId).ToList();
 
         public bool ApproveTransaction(int txId)
         {
@@ -26,8 +23,9 @@
             if(transaction is null)
                 return false;
 
-            transaction.Status = "Approved";
-            _userService.AddBalance(transaction.UserId, transaction.CurrencyId, transaction.Amount);
+            transaction.Status = DepositStatus.Approved;
+            _userBalanceService.AddUserBalance(transaction.UserId, transaction.CurrencyId, transaction.Amount);
+            _db.SaveChanges();
             return true;
         }
 
@@ -37,7 +35,8 @@
             if (transaction is null)
                 return false;
 
-            transaction.Status = "Declined";
+            transaction.Status = DepositStatus.Declined;
+            _db.SaveChanges();
             return true;
         }
     }

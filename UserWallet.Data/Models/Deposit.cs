@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace UserWallet.Models
+﻿namespace UserWallet.Models
 {
     [Table("deposits")]
     public class Deposit
@@ -10,26 +7,25 @@ namespace UserWallet.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Column("id")]
         public int Id { get; set; }
-        [Column("userId")]
+
+        [Column("user_id")]
         public int UserId { get; set; }
+
         public User? User { get; set; }
+
         [MaxLength(30)]
-        [Column("currencyId")]
-        public string CurrencyId { get; set; }
+        [Column("currency_id")]
+        public string CurrencyId { get; set; } = null!;
+
         public Currency? Currency { get; set; }
+
         [Column("amount")]
         public decimal Amount { get; set; }
-        [MaxLength(16)]
-        [Column("cardNumber")]
-        public string? CardNumber { get; set; }
-        [MaxLength(16)]
-        [Column("cardholderName")]
-        public string? CardholderName { get; set; }
-        [MaxLength(16)]
-        [Column("address")]
-        public string? Address { get; set; }
-        [MaxLength(20)]
+
+        [Column("additional_data", TypeName = "jsonb")]
+        public string AdditionalData { get; set; } = null!;
+
         [Column("status")]
-        public string Status { get; set; }
+        public DepositStatus Status { get; set; }
     }
 }

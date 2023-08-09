@@ -1,11 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace UserWallet.DTOs
+﻿namespace UserWallet.DTOs
 {
     public class ChangeUserPasswordDTO
     {
         [Required]
         [StringLength(8, MinimumLength = 4)]
-        public string NewPassword { get; set; }
+        public string NewPassword { get; set; } = null!;
     }
 }

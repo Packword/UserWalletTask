@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace UserWallet.Models
+﻿namespace UserWallet.Models
 {
     [Table("currencies")]
     public class Currency
@@ -9,11 +6,12 @@ namespace UserWallet.Models
         [Key]
         [MaxLength(30)]
         [Column("id")]
-        public string Id { get; set; }
-        [Column("isAvailable")]
+        public string Id { get; set; } = null!;
+
+        [Column("is_available")]
         public bool IsAvailable { get; set; }
-        [MaxLength(10)]
+
         [Column("type")]
-        public string Type { get; set; }
+        public CurrencyType Type { get; set; }
     }
 }

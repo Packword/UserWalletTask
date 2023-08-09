@@ -1,9 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using UserWallet.DTOs;
-using UserWallet.Services;
-
-namespace UserWallet.Controllers
+﻿namespace UserWallet.Controllers
 {
     [Route("[controller]")]
     [ApiController]

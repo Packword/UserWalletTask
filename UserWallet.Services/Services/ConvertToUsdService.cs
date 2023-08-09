@@ -9,16 +9,10 @@
             _exchangeRateGenerator = exchangeRateGenerator;
         }
 
-        public Dictionary<string, BalanceDTO> GenerateUserBalance(User? user)
+        public List<(string CurrencyId, decimal UsdAmount)> ConvertCurrency(IEnumerable<(string CurrencyId, decimal Amount)> currenciesAmounts)
         {
             var rates = _exchangeRateGenerator.GetCurrentRates();
-            Dictionary<string, BalanceDTO>? result = new Dictionary<string, BalanceDTO>();
-            foreach (UserBalance balance in user.Balances)
-            {
-                result.Add(balance.CurrencyId, new BalanceDTO { Balance = balance.Amount, UsdAmount = rates[balance.CurrencyId] * balance.Amount });
-            }
-
-            return result;
+            return currenciesAmounts.Select(x => (x.CurrencyId, x.Amount *= rates[x.CurrencyId])).ToList();
         }
     }
 }

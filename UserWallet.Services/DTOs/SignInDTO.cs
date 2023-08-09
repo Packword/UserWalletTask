@@ -1,6 +1,6 @@
 ﻿namespace UserWallet.DTOs
 {
-    public class AddUserDTO: UserDTO
+    public class SignInDTO: LoginDTO
     {
     }
 }

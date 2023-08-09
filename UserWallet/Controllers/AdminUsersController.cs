@@ -1,11 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-
-namespace UserWallet.Controllers
+﻿namespace UserWallet.Controllers
 {
     [Route("admin/users")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = UsersRole.ADMIN)]
     [ApiController]
     public class AdminUsersController : ControllerBase
     {
@@ -17,28 +13,22 @@ namespace UserWallet.Controllers
 
         [HttpGet]
         public List<User> Get()
-        {
-            return _userService.GetUsers();
-        }
+            => _userService.GetUsers();
 
-        [HttpPatch("block/{userId}")]
-        public IActionResult BlockUser(string userId)
+        [HttpPatch("block/{userId:int}")]
+        public IActionResult BlockUser(int userId)
         {
-            if (!int.TryParse(userId, out int id))
-                return BadRequest();
-            bool result = _userService.BlockUser(id);
+            bool result = _userService.BlockUser(userId);
             if (!result)
                 return NotFound();
 
             return Ok();
         }
 
-        [HttpPatch("unblock/{userId}")]
-        public IActionResult UnblockUser(string userId)
+        [HttpPatch("unblock/{userId:int}")]
+        public IActionResult UnblockUser(int userId)
         {
-            if (!int.TryParse(userId, out int id))
-                return BadRequest();
-            bool result = _userService.UnblockUser(id);
+            bool result = _userService.UnblockUser(userId);
             if (!result)
                 return NotFound();
 

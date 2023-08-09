@@ -1,11 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-
-namespace UserWallet.Controllers
+﻿namespace UserWallet.Controllers
 {
     [Route("admin/wallet/tx")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = UsersRole.ADMIN)]
     [ApiController]
     public class AdminWalletTransactionsController : ControllerBase
     {
@@ -18,30 +14,22 @@ namespace UserWallet.Controllers
 
         [HttpGet]
         public List<Deposit>? Get()
-        {
-            return _transactionService.GetAllDeposits();
-        }
+            => _transactionService.GetAllDeposits();
 
-        [HttpPost("approve/{txId}")]
-        public IActionResult ApproveTransaction(string txId)
+        [HttpPost("approve/{txId:int}")]
+        public IActionResult ApproveTransaction(int txId)
         {
-            if (!int.TryParse(txId, out int id))
-                return BadRequest();
-
-            bool result = _transactionService.ApproveTransaction(id);
+            bool result = _transactionService.ApproveTransaction(txId);
             if (!result)
                 return NotFound();
 
             return Ok();
         }
 
-        [HttpPost("decline/{txId}")]
-        public IActionResult DeclineTransaction(string txId)
+        [HttpPost("decline/{txId:int}")]
+        public IActionResult DeclineTransaction(int txId)
         {
-            if (!int.TryParse(txId, out int id))
-                return BadRequest();
-
-            bool result = _transactionService.DeclineTransaction(id);
+            bool result = _transactionService.DeclineTransaction(txId);
             if (!result)
                 return NotFound();
 

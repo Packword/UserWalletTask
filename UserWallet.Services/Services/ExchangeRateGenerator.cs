@@ -1,37 +1,30 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
-using System.Text.Json;
-using UserWallet.Models;
-using UserWallet.OptionsModels;
-
-namespace UserWallet.Services
+﻿namespace UserWallet.Services
 {
     public class ExchangeRateGenerator : IHostedService
     {
-        private readonly IOptionsMonitor<ExchangeRateOptions> _config;
-        IDbContextFactory<ApplicationDbContext> _contextFactory;
+        private readonly IOptionsMonitor<ExchangeRateGeneratorOptions> _config;
+        private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
+        private readonly Random rnd = new Random();
 
         private Dictionary<string, decimal> currentRates = new Dictionary<string, decimal>();
-        private List<Currency>? currencies;
+        private List<Currency> currencies;
         private Task task;
 
-        public ExchangeRateGenerator(IOptionsMonitor<ExchangeRateOptions> config, IDbContextFactory<ApplicationDbContext> contextFactory)
+        public ExchangeRateGenerator(IOptionsMonitor<ExchangeRateGeneratorOptions> config, IDbContextFactory<ApplicationDbContext> contextFactory)
         {
             _contextFactory = contextFactory;
             _config = config;
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            Random rnd = new Random();
             InitCurrencies();
-            InitRates(rnd);
+            InitRates();
 
-            task = UpdateRatesAsync(cancellationToken, rnd);
+            task = UpdateRatesAsync(cancellationToken);
             return Task.CompletedTask;
         }
 
-        private void InitRates(Random rnd)
+        private void InitRates()
         {
             foreach (var currency in currencies)
             {
@@ -41,38 +34,29 @@ namespace UserWallet.Services
 
         private void InitCurrencies()
         {
-            using (var context = _contextFactory.CreateDbContext())
-            {
-                currencies = context.Currencies.ToList();
-            }
+            using var context = _contextFactory.CreateDbContext();
+            currencies = context.Currencies.ToList();
         }
 
-        private async Task UpdateRatesAsync(CancellationToken stoppingToken, Random rnd)
+        private async Task UpdateRatesAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                foreach(string key in currentRates.Keys)
+                foreach (string key in currentRates.Keys)
                 {
-                    currentRates[key] *= (1 + 0.05m * rnd.Next(-1, 2));
-                }
-
-                await Task.Delay(TimeSpan.FromSeconds(_config.CurrentValue.UpdateInterval), stoppingToken);
+                    currentRates[key] *= 1 + 0.05m * rnd.Next(-1, 2);
+                }   
+                await Task.Delay(_config.CurrentValue.UpdateInterval, stoppingToken);
             }
         }
 
         public List<Currency> GetCurrencies()
-        {
-            return currencies;
-        }
+            => currencies;
 
         public Dictionary<string, decimal> GetCurrentRates()
-        {
-            return currentRates;
-        }
+            => currentRates;
 
         public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await task;
-        }
+            => await task;
     }
 }

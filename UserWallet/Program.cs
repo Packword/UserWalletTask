@@ -1,8 +1,3 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
-using UserWallet.OptionsModels;
-
 namespace UserWallet
 {
     public partial class Program
@@ -18,6 +13,7 @@ namespace UserWallet
             {
                 SeedDataFromJson.Initialize(scope.ServiceProvider);
             }
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -33,7 +29,7 @@ namespace UserWallet
 
         private static void ConfigureServices(IServiceCollection services, ConfigurationManager configuration)
         {
-            services.Configure<ExchangeRateOptions>(configuration.GetSection("ExchangeRate"));
+            services.Configure<ExchangeRateGeneratorOptions>(configuration.GetSection("ExchangeRate"));
 
             services.AddCors(b =>
                 b.AddDefaultPolicy(policy => policy.WithOrigins("http://localhost:63342")
@@ -65,6 +61,7 @@ namespace UserWallet
             services.AddScoped<ITransactionService, TransactionService>();
             services.AddScoped<IDepositFiatService, DepositFiatService>();
             services.AddScoped<IDepositCryptoService, DepositCryptoService>();
+            services.AddScoped<IUserBalanceService, UserBalanceService>();
             services.AddSingleton<ExchangeRateGenerator>();
             services.AddSingleton<IHostedService, ExchangeRateGenerator>(serviceProvider => serviceProvider.GetRequiredService<ExchangeRateGenerator>());
             services.AddDbContextFactory<ApplicationDbContext>(options =>

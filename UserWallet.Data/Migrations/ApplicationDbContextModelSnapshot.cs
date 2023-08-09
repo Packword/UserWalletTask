@@ -30,12 +30,10 @@ namespace UserWallet.Data.Migrations
 
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("boolean")
-                        .HasColumnName("isAvailable");
+                        .HasColumnName("is_available");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)")
+                    b.Property<int>("Type")
+                        .HasColumnType("integer")
                         .HasColumnName("type");
 
                     b.HasKey("Id");
@@ -52,40 +50,28 @@ namespace UserWallet.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseSerialColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Address")
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)")
-                        .HasColumnName("address");
+                    b.Property<string>("AdditionalData")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("additional_data");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric")
                         .HasColumnName("amount");
 
-                    b.Property<string>("CardNumber")
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)")
-                        .HasColumnName("cardNumber");
-
-                    b.Property<string>("CardholderName")
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)")
-                        .HasColumnName("cardholderName");
-
                     b.Property<string>("CurrencyId")
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
-                        .HasColumnName("currencyId");
+                        .HasColumnName("currency_id");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
                         .HasColumnName("status");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer")
-                        .HasColumnName("userId");
+                        .HasColumnName("user_id");
 
                     b.HasKey("Id");
 
@@ -107,7 +93,7 @@ namespace UserWallet.Data.Migrations
 
                     b.Property<bool>("IsBlocked")
                         .HasColumnType("boolean")
-                        .HasColumnName("isBlocked");
+                        .HasColumnName("is_blocked");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -136,12 +122,12 @@ namespace UserWallet.Data.Migrations
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("integer")
-                        .HasColumnName("userId");
+                        .HasColumnName("user_id");
 
                     b.Property<string>("CurrencyId")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
-                        .HasColumnName("currencyId");
+                        .HasColumnName("currency_id");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric")

@@ -1,11 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using System.Text.Json;
-using UserWallet.Interfaces;
-using UserWallet.Models;
-
-namespace UserWallet.Services
+﻿namespace UserWallet.Services
 {
     public class UserService: IUserService
     {
@@ -16,9 +9,7 @@ namespace UserWallet.Services
         }
 
         public List<User> GetUsers()
-        {
-            return _db.Users.ToList();
-        }
+            => _db.Users.ToList();
 
         public bool BlockUser(int userId)
         {
@@ -43,8 +34,7 @@ namespace UserWallet.Services
 
         public bool AddUser(string userName, string password)
         {
-
-            if (_db.Users.FirstOrDefault(u => Equals(u.Username, userName)) is not null)
+            if (_db.Users.FirstOrDefault(u => u.Username == userName) is not null)
                 return false;
 
             User user = new User()
@@ -52,7 +42,7 @@ namespace UserWallet.Services
                 Username = userName,
                 Password = password,
                 IsBlocked = false,
-                Role = "User"
+                Role = UsersRole.USER
             };
 
             _db.Users.Add(user);
@@ -61,38 +51,17 @@ namespace UserWallet.Services
             return true;
         }
 
-        public void ChangePassword(string newPassword, HttpContext context)
+        public void ChangePassword(int userId, string newPassword)
         {
-            int userId = int.Parse(context.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             User user = GetUserById(userId)!;
             user.Password = newPassword;
             _db.SaveChanges();
         }
 
         public User? GetUserById(int userId)
-        {
-            return _db.Users.Include(u => u.Balances).FirstOrDefault(u => u.Id == userId);
-        }
+            => _db.Users.FirstOrDefault(u => u.Id == userId);
 
         public User? GetUserByNameAndPassword(string username, string password)
-        {
-            return _db.Users.Include(u => u.Balances).FirstOrDefault(u => Equals(u.Username, username) && Equals(u.Password, password));
-        }
-
-        public void AddBalance(int userId, string currency, decimal amount)
-        {
-            UserBalance? balance = _db.UserBalances.FirstOrDefault(b => Equals(currency, b.CurrencyId) && Equals(b.UserId, userId));
-            if (balance is not null)
-                balance.Amount += amount;
-            else
-            {
-                 _db.UserBalances.Add( new UserBalance {
-                    UserId = userId,
-                    CurrencyId = currency,
-                    Amount = amount
-                });
-            }
-            _db.SaveChanges();
-        }
+            => _db.Users.FirstOrDefault(u => u.Username == username && u.Password == password);
     }
 }
