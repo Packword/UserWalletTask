@@ -9,10 +9,10 @@
             _exchangeRateGenerator = exchangeRateGenerator;
         }
 
-        public List<(string CurrencyId, decimal UsdAmount)> ConvertCurrency(IEnumerable<(string CurrencyId, decimal Amount)> balances)
+        public List<(string CurrencyId, decimal UsdAmount)> ConvertCurrency(IEnumerable<(string CurrencyId, decimal Amount)> currenciesAmounts)
         {
             var rates = _exchangeRateGenerator.GetCurrentRates();
-            return balances.Select(balance => (balance.CurrencyId, balance.Amount *= rates[balance.CurrencyId])).ToList();
+            return currenciesAmounts.Select(x => (x.CurrencyId, x.Amount *= rates[x.CurrencyId])).ToList();
         }
     }
 }
