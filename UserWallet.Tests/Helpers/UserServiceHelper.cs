@@ -3,7 +3,7 @@
     public static class UserServiceHelper
     {
         public static User CreateUser(string username, string password, string role, bool isBlocked)
-            => new User
+            => new()
             {
                 Username = username,
                 Password = password,

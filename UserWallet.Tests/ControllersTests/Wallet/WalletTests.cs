@@ -16,7 +16,25 @@
         }
 
         [Test]
-        public async Task GetCurrentUserBalance_AsUserAfterDeposit_ReturnedBalanceIsCorrect()
+        public async Task GetCurrentUserBalance_AsAnonymous_Unauthorized()
+        {
+            var response = await _client.GetAsync("wallet/balance");
+
+            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        }
+
+        [Test]
+        public async Task GetCurrentUserBalance_AsAdmin_Forbidden()
+        {
+            await LoginAsAdmin(_client);
+
+            var response = await _client.GetAsync("wallet/balance");
+
+            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        }
+
+        [Test]
+        public async Task GetCurrentUserBalance_WithOneDeposit_ReturnedBalanceIsCorrect()
         {
             await LoginAsUser(_client);
             await CreateCryptoDeposit(_client);
@@ -26,6 +44,16 @@
 
             userBalance.Should().NotBeNull().And.ContainKey(CRYPTO_CURRENCY_ID);
             userBalance![CRYPTO_CURRENCY_ID].Amount.Should().Be(DEFAULT_DEPOSIT_AMOUNT);
+        }
+
+        [Test]
+        public async Task GetCurrentUserBalance_WithoutDeposits_ReturnedEmptyBalance()
+        {
+            await LoginAsUser(_client);
+
+            var userBalance = await _client.GetCurrentUserBalance();
+
+            userBalance.Should().NotBeNull().And.BeEmpty();
         }
 
         [Test]
@@ -39,7 +67,35 @@
         }
 
         [Test]
-        public async Task GetCurrentUserDeposits_AsUserWithOneCryptoDeposit_ReturnedDepositsCorrect()
+        public async Task GetCurrentUserDeposits_AsAdmin_Forbidden()
+        {
+            await LoginAsAdmin(_client);
+
+            var response = await _client.GetAsync("wallet/tx");
+
+            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        }
+
+        [Test]
+        public async Task GetCurrentUserDeposits_AsAnonymous_Unauthorized()
+        {
+            var response = await _client.GetAsync("wallet/tx");
+
+            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        }
+
+        [Test]
+        public async Task GetCurrentUserDeposits_WithouDeposits_ReturnedEmptyList()
+        {
+            await LoginAsUser(_client);
+
+            var deposits = await _client.GetCurrentUserDeposits();
+
+            deposits.Should().NotBeNull().And.BeEmpty();
+        }
+
+        [Test]
+        public async Task GetCurrentUserDeposits_WithOneCryptoDeposit_ReturnedDepositsCorrect()
         {
             await LoginAsUser(_client);
             await CreateCryptoDeposit(_client);
@@ -53,6 +109,20 @@
         }
 
         [Test]
+        public async Task GetCurrentUserDeposits_WithOtherUserDeposit_ReturnedEmptyList()
+        {
+            await LoginAsUser(_client);
+            await _client.SignUp("Test", "ForTest");
+            using var secondClient = _factory.CreateClient();
+            await secondClient.Login("Test", "ForTest");
+            await CreateCryptoDeposit(secondClient);
+
+            var deposits = await _client.GetCurrentUserDeposits();
+
+            deposits.Should().NotBeNull().And.BeEmpty();
+        }
+
+        [Test]
         public async Task GetUserBalances_AsAdmin_Success()
         {
             await LoginAsAdmin(_client);
@@ -63,7 +133,25 @@
         }
 
         [Test]
-        public async Task GetUserBalances_AsAdminAfterDeposit_ReturnedBalancesIsCorrect()
+        public async Task GetUserBalances_AsUser_Forbidden()
+        {
+            await LoginAsUser(_client);
+
+            var response = await _client.GetAsync($"wallet/{DEFAULT_USER_ID}");
+
+            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        }
+
+        [Test]
+        public async Task GetUserBalances_AsAnonymous_Unauthorized()
+        {
+            var response = await _client.GetAsync($"wallet/{DEFAULT_USER_ID}");
+
+            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        }
+
+        [Test]
+        public async Task GetUserBalances_AfterDeposit_ReturnedBalancesIsCorrect()
         {
             await CreateUserClientAndCreateCryptoDeposit();
             await LoginAsAdmin(_client);
@@ -75,20 +163,46 @@
             userBalance![CRYPTO_CURRENCY_ID].Amount.Should().Be(DEFAULT_DEPOSIT_AMOUNT);
         }
 
-        
+        [Test]
+        public async Task GetUserBalances_WithoutDeposit_ReturnedEmptyList()
+        {
+            await LoginAsAdmin(_client);
 
-        [TestCaseSource(nameof(CreateDepositCorrectData))]
-        public async Task CreateDeposit_AsUserWithCorrectData_Success(string currencyId, DepositDTO deposit)
+            var userBalance = await _client.GetUserBalance(DEFAULT_USER_ID);
+
+            userBalance.Should().NotBeNull().And.BeEmpty();
+        }
+
+        [Test]
+        public async Task CreateDeposit_AsAnonymous_Unauthorized()
+        {
+            var response = await CreateCryptoDeposit(_client);
+
+            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        }
+
+        [Test]
+        public async Task CreateDeposit_AsAdmin_Forbidden()
+        {
+            await LoginAsAdmin(_client);
+
+            var response = await CreateCryptoDeposit(_client);
+
+            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        }
+
+        [Test]
+        public async Task CreateDeposit_AsUser_Success()
         {
             await LoginAsUser(_client);
 
-            var response = await _client.PutAsJsonAsync($"/wallet/deposit/{currencyId}", deposit);
+            var response = await CreateCryptoDeposit(_client);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
 
         [TestCaseSource(nameof(CreateDepositCorrectData))]
-        public async Task CreateDeposit_AsUserWithCorrectData_DepositHasCreated(string currencyId, DepositDTO deposit)
+        public async Task CreateDeposit_WithCorrectData_DepositHasCreated(string currencyId, DepositDTO deposit)
         {
             await LoginAsUser(_client);
 
@@ -113,6 +227,62 @@
             yield return new TestCaseData(FIAT_CURRENCY_ID, CreateFiatDepositDTOWithCorrectData(CRYPTO_ADDRESS));
         }
 
+        [TestCaseSource(nameof(CreateDepositIncorrectData))]
+        public async Task CreateDeposit_WithIncorrectData_BadRequestAndDepositHasNotCreated(string currencyId, DepositDTO deposit)
+        {
+            await LoginAsUser(_client);
+
+            var response = await _client.PutAsJsonAsync($"/wallet/deposit/{currencyId}", deposit);
+            var deposits = await _client.GetCurrentUserDeposits();
+
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            deposits.Should().NotBeNull().And.BeEmpty();
+        }
+
+        private static IEnumerable<TestCaseData> CreateDepositIncorrectData()
+        {
+            yield return new TestCaseData(
+                CRYPTO_CURRENCY_ID, 
+                TransactionServiceHelper.CreateDepositDTO(0, CRYPTO_ADDRESS, null, null)
+            );
+            yield return new TestCaseData(
+                CRYPTO_CURRENCY_ID,
+                TransactionServiceHelper.CreateDepositDTO(-5, CRYPTO_ADDRESS, null, null)
+            );
+            yield return new TestCaseData(
+                CRYPTO_CURRENCY_ID,
+                TransactionServiceHelper.CreateDepositDTO(200, CRYPTO_ADDRESS, null, null)
+            );
+            yield return new TestCaseData(
+                CRYPTO_CURRENCY_ID,
+                TransactionServiceHelper.CreateDepositDTO(DEFAULT_DEPOSIT_AMOUNT, "123", null, null)
+            );
+            yield return new TestCaseData(
+                 CRYPTO_CURRENCY_ID,
+                 TransactionServiceHelper.CreateDepositDTO(DEFAULT_DEPOSIT_AMOUNT, "12345678901234567890", null, null)
+            );
+            yield return new TestCaseData(
+                 CRYPTO_CURRENCY_ID,
+                 TransactionServiceHelper.CreateDepositDTO(DEFAULT_DEPOSIT_AMOUNT, null, null, null)
+            );
+            yield return new TestCaseData(
+                "asdfasdgasd",
+                TransactionServiceHelper.CreateDepositDTO(0, null, null, null)
+            );
+            yield return new TestCaseData(
+                FIAT_CURRENCY_ID,
+                TransactionServiceHelper.CreateDepositDTO(DEFAULT_DEPOSIT_AMOUNT, null, "1", FIAT_CARDNUMBER)
+            );
+            yield return new TestCaseData(
+                FIAT_CURRENCY_ID,
+                TransactionServiceHelper.CreateDepositDTO(DEFAULT_DEPOSIT_AMOUNT, null, "12345678901234567890", FIAT_CARDNUMBER)
+            );
+            yield return new TestCaseData(
+                FIAT_CURRENCY_ID,
+                TransactionServiceHelper.CreateDepositDTO(DEFAULT_DEPOSIT_AMOUNT, null, FIAT_CARDHOLDER, "1234")
+            );
+        }
+
         private static DepositDTO CreateCryptoDepositDTOWithCorrectAddress(string? cardholderName, string? cardNumber)
             => TransactionServiceHelper.CreateDepositDTO(DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS, cardholderName, cardNumber);
 
@@ -133,10 +303,10 @@
             await adminClient.ApproveTransaction(id);
         }
 
-        private async Task CreateCryptoDeposit(HttpClient client)
+        private async static Task<HttpResponseMessage> CreateCryptoDeposit(HttpClient client)
         {
             var deposit = CreateCryptoDepositDTOWithCorrectAddress(null, null);
-            await client.CreateDeposit(CRYPTO_CURRENCY_ID, deposit);
+            return await client.CreateDeposit(CRYPTO_CURRENCY_ID, deposit);
         }
     }
 }

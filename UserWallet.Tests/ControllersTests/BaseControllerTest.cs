@@ -93,10 +93,10 @@ namespace UserWallet.Tests.ControllersTests
             _factory.Dispose();
         }
 
-        protected async Task<HttpResponseMessage> LoginAsAdmin(HttpClient client)
+        protected async static Task<HttpResponseMessage> LoginAsAdmin(HttpClient client)
             => await client.Login(ADMIN_USERNAME, ADMIN_PASSWORD);
 
-        protected async Task<HttpResponseMessage> LoginAsUser(HttpClient client)
+        protected async static Task<HttpResponseMessage> LoginAsUser(HttpClient client)
             => await client.Login(DEFAULT_USER_USERNAME, DEFAULT_USER_PASSWORD);
     }
 }

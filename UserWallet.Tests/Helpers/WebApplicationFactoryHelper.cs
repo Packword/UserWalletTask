@@ -11,13 +11,10 @@
                             c =>
                             {
                                 var descriptor = c.SingleOrDefault(
-                                    d => d.ServiceType ==
-                                        typeof(DbContextOptions<ApplicationDbContext>));
+                                    d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
 
                                 if (descriptor != null)
-                                {
                                     c.Remove(descriptor);
-                                }
 
                                 c.AddDbContextFactory<ApplicationDbContext>(options =>
                                     options.UseInMemoryDatabase("InMemoryDbForTesting"));

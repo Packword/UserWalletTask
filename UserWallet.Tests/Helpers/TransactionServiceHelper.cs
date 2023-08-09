@@ -3,7 +3,7 @@
     public static class TransactionServiceHelper
     {
         public static DepositDTO CreateDepositDTO(decimal amount, string? address, string? cardholderName, string? cardNumber)
-            => new DepositDTO
+            => new()
             {
                 Amount = amount,
                 Address = address,
