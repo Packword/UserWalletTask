@@ -4,11 +4,10 @@
     {
         private readonly IOptionsMonitor<ExchangeRateGeneratorOptions> _config;
         private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
-        private readonly Random rnd = new Random();
+        private readonly Random rnd = new();
+        private readonly Dictionary<string, decimal> currentRates = new();
 
-        private Dictionary<string, decimal> currentRates = new Dictionary<string, decimal>();
-        private List<Currency> currencies;
-        private Task task;
+        private List<Currency> currencies = new();
 
         public ExchangeRateGenerator(IOptionsMonitor<ExchangeRateGeneratorOptions> config, IDbContextFactory<ApplicationDbContext> contextFactory)
         {
@@ -20,7 +19,7 @@
             InitCurrencies();
             InitRates();
 
-            task = UpdateRatesAsync(cancellationToken);
+            UpdateRatesAsync(cancellationToken);
             return Task.CompletedTask;
         }
 

@@ -37,7 +37,7 @@
             if (_db.Users.FirstOrDefault(u => u.Username == userName) is not null)
                 return false;
 
-            User user = new User()
+            User user = new()
             {
                 Username = userName,
                 Password = password,

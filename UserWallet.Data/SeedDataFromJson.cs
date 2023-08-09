@@ -25,12 +25,14 @@
         {
             var tmpUsers = JsonSerializer.Deserialize<List<TmpUser>>(fs)!;
             foreach (var tmpUser in tmpUsers)
+            {
                 AddUserToDb(context, tmpUser);
+            }
         }
 
         private static void AddUserToDb(ApplicationDbContext context, TmpUser tmpUser)
         {
-            User user = new User
+            User user = new()
             {
                 Username = tmpUser.Username,
                 Password = tmpUser.Password,
@@ -41,11 +43,9 @@
         }
 
         private static void FillUserBalances(User user, TmpUser tmpUser)
-        {
-            user.Balances = tmpUser.Balances
+            => user.Balances = tmpUser.Balances
                                    .Select(balance => new UserBalance { CurrencyId = balance.Key, Amount = balance.Value })
                                    .ToList();
-        }
 
         private static void MigrateCurrenciesFromJsonToDb(ApplicationDbContext context, FileStream fs)
         {
@@ -53,7 +53,9 @@
             var oldCurrencies = context.Currencies.ToDictionary(c => c.Id);
 
             foreach (var currId in oldCurrencies.Keys)
+            {
                 oldCurrencies[currId].IsAvailable = false;
+            }
 
             foreach (var tmpCurr in tmpCurrencies)
             {
@@ -67,21 +69,19 @@
         }
 
         private static void AddNewCurrencyToDb(ApplicationDbContext context, TmpCurrency tmpCurr)
-        {
-            context.Currencies.Add(new Currency
+            => context.Currencies.Add(new()
             {
                 Id = tmpCurr.Id,
                 Type = Enum.Parse<CurrencyType>(tmpCurr.Type),
                 IsAvailable = true
             });
-        }
 
         private class TmpUser
         {
             public string Username { get; set; } = null!;
             public string Password { get; set; } = null!;
             public string Role { get; set; } = null!;
-            public Dictionary<string, decimal> Balances { get; set; } = new Dictionary<string, decimal>();
+            public Dictionary<string, decimal> Balances { get; set; } = new();
         }
 
         private class TmpCurrency

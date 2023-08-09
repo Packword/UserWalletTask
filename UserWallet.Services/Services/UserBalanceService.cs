@@ -19,14 +19,13 @@
             if (balance is not null)
                 balance.Amount += amount;
             else
-            {
-                _db.UserBalances.Add(new UserBalance
+                _db.UserBalances.Add(new()
                 {
                     UserId = userId,
                     CurrencyId = currency,
                     Amount = amount
                 });
-            }
+
             _db.SaveChanges();
         }
     }

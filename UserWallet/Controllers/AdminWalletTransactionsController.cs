@@ -19,20 +19,28 @@
         [HttpPost("approve/{txId:int}")]
         public IActionResult ApproveTransaction(int txId)
         {
-            bool result = _transactionService.ApproveTransaction(txId);
-            if (!result)
+            var transaction = _transactionService.GetTransactionById(txId);
+            if (transaction is null)
                 return NotFound();
 
+            if(transaction.Status != DepositStatus.Undecided)
+                return BadRequest();
+
+            _transactionService.ApproveTransaction(txId);
             return Ok();
         }
 
         [HttpPost("decline/{txId:int}")]
         public IActionResult DeclineTransaction(int txId)
         {
-            bool result = _transactionService.DeclineTransaction(txId);
-            if (!result)
+            var transaction = _transactionService.GetTransactionById(txId);
+            if (transaction is null)
                 return NotFound();
 
+            if (transaction.Status != DepositStatus.Undecided)
+                return BadRequest();
+
+            _transactionService.DeclineTransaction(txId);
             return Ok();
         }
     }

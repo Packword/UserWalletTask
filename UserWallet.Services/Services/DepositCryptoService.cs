@@ -14,7 +14,7 @@
             if (!IsAdditionalDataValid(deposit))
                 return false;
 
-            Deposit newDeposit = new Deposit
+            Deposit newDeposit = new()
             {
                 UserId = userId,
                 CurrencyId = currencyId,

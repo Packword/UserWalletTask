@@ -12,11 +12,10 @@
 
         [HttpGet]
         public CurrentRateDTO GetCurrentRates()
-        {
-            CurrentRateDTO currentRate = new CurrentRateDTO();
-            currentRate.DateTime = DateTime.Now;
-            currentRate.Rates = _exchangeRateGenerator.GetCurrentRates();
-            return currentRate;
-        }
+            => new()
+            {
+                DateTime = DateTime.Now,
+                Rates = _exchangeRateGenerator.GetCurrentRates()
+            };
     }
 }

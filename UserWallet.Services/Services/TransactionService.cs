@@ -20,7 +20,7 @@
         public bool ApproveTransaction(int txId)
         {
             var transaction = _db.Deposits.FirstOrDefault(d => d.Id == txId);
-            if(transaction is null)
+            if(transaction is null || transaction.Status != DepositStatus.Undecided)
                 return false;
 
             transaction.Status = DepositStatus.Approved;
@@ -31,13 +31,16 @@
 
         public bool DeclineTransaction(int txId)
         {
-            var transaction = _db.Deposits.FirstOrDefault(d => d.Id == txId);
-            if (transaction is null)
+            var transaction = GetTransactionById(txId);
+            if (transaction is null || transaction.Status != DepositStatus.Undecided)
                 return false;
 
             transaction.Status = DepositStatus.Declined;
             _db.SaveChanges();
             return true;
         }
+
+        public Deposit? GetTransactionById(int txId)
+            => _db.Deposits.FirstOrDefault(d => d.Id == txId);
     }
 }

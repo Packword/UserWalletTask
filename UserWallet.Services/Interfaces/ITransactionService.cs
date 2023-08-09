@@ -6,5 +6,6 @@
         public List<Deposit> GetAllDeposits();
         public bool ApproveTransaction(int txId);
         public bool DeclineTransaction(int txId);
+        public Deposit? GetTransactionById(int txId);
     }
 }

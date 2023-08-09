@@ -12,7 +12,7 @@
         private readonly IUserBalanceService _userBalanceService;
 
         private readonly List<Currency> currencies;
-        private HashSet<string> availableCurrencies = new HashSet<string>();
+        private readonly HashSet<string> availableCurrencies = new();
 
         public WalletController(ExchangeRateGenerator exchangeRateGenerator,
                                 IConvertToUsdService convertToUsdService,
@@ -66,20 +66,12 @@
 
             Currency currency = currencies.First(c => c.Id == currencyId);
             int userId = HttpContext.GetCurrentUserId();
-
-            bool result;
-            switch (currency.Type)
+            var result = currency.Type switch
             {
-                case CurrencyType.Fiat:
-                    result = _depositFiatService.CreateDeposit(userId, depositDTO, currency.Id);
-                    break;
-                case CurrencyType.Crypto:
-                    result = _depositCryptoService.CreateDeposit(userId, depositDTO, currency.Id);
-                    break;
-                default:
-                    result = false;
-                    break;
-            }
+                CurrencyType.Fiat => _depositFiatService.CreateDeposit(userId, depositDTO, currency.Id),
+                CurrencyType.Crypto => _depositCryptoService.CreateDeposit(userId, depositDTO, currency.Id),
+                _ => false,
+            };
 
             if (!result)
                 return BadRequest("Wrong additional data lenght, crypto address and fiat cardnumber must be 16 characters, and fiat cardholder name between 2 and 16 characters");
@@ -90,7 +82,7 @@
         private Dictionary<string, BalanceDTO> ConvertToBalanceDTO(List<UserBalance>? balances)
         {
             if (balances is null)
-                return new Dictionary<string, BalanceDTO>();
+                return new();
 
             var usdBalances = _convertToUsdService.ConvertCurrency(balances.Select(x => (x.CurrencyId, x.Amount)).ToList());
             var balancesZip = usdBalances.Zip(balances);

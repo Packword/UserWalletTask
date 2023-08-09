@@ -58,6 +58,7 @@ namespace UserWallet
             services.AddAuthorization();
             services.AddScoped<IConvertToUsdService, ConvertToUsdService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ITransactionService, TransactionService>();
             services.AddScoped<IDepositFiatService, DepositFiatService>();
             services.AddScoped<IDepositCryptoService, DepositCryptoService>();
