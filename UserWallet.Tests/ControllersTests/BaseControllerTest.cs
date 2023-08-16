@@ -24,8 +24,8 @@ namespace UserWallet.Tests.ControllersTests
         protected const string  FIAT_CARDNUMBER = "1234567890123456";
         protected const decimal DEFAULT_DEPOSIT_AMOUNT = 50;
 
-        protected WebApplicationFactory<Program> _factory;
-        protected HttpClient _client;
+        protected WebApplicationFactory<Program> Factory { get; set; }
+        protected HttpClient Client { get; set; }
 
         [OneTimeSetUp]
         public virtual void OneTimeSetup()
@@ -33,15 +33,15 @@ namespace UserWallet.Tests.ControllersTests
             initialDirectory = Directory.GetCurrentDirectory();
 
             Directory.SetCurrentDirectory(WorkingDirectoryPath);
-            _factory = WebApplicationFactoryHelper.CreateFactoryWithInMemoryDb();
+            Factory = WebApplicationFactoryHelper.CreateFactoryWithInMemoryDb();
         }
 
         [SetUp]
         public void Setup()
         {
-            _client = _factory.CreateClient(); ;
+            Client = Factory.CreateClient(); ;
 
-            var sp = _factory.Services;
+            var sp = Factory.Services;
             using var scope = sp.CreateScope();
             var scopedServices = scope.ServiceProvider;
 
@@ -50,14 +50,14 @@ namespace UserWallet.Tests.ControllersTests
             db.Database.EnsureCreated();
 
             db.Users.Add(
-                UserServiceHelper.CreateUser(
+                new User(
                     ADMIN_USERNAME,
                     ADMIN_PASSWORD,
                     ADMIN_ROLE,
                     false
                 ));
             db.Users.Add(
-                UserServiceHelper.CreateUser(
+                new User(
                     DEFAULT_USER_USERNAME,
                     DEFAULT_USER_PASSWORD,
                     DEFAULT_USER_ROLE,
@@ -83,14 +83,14 @@ namespace UserWallet.Tests.ControllersTests
         [TearDown]
         public void TearDown()
         {
-            _client.Dispose();
+            Client.Dispose();
         }
 
         [OneTimeTearDown]
         public void OneTimeTearDown()
         {
             Directory.SetCurrentDirectory(initialDirectory);
-            _factory.Dispose();
+            Factory.Dispose();
         }
 
         protected async static Task<HttpResponseMessage> LoginAsAdmin(HttpClient client)

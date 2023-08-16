@@ -32,12 +32,7 @@
 
         private static void AddUserToDb(ApplicationDbContext context, TmpUser tmpUser)
         {
-            User user = new()
-            {
-                Username = tmpUser.Username,
-                Password = tmpUser.Password,
-                Role = tmpUser.Role
-            };
+            User user = new(tmpUser.Username, tmpUser.Password, tmpUser.Role, false);
             FillUserBalances(user, tmpUser);
             context.Users.Add(user);
         }

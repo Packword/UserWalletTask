@@ -4,14 +4,14 @@ namespace UserWallet.Tests.ControllersTests.Admin
 {
     public class AdminUsersTests: BaseControllerTest
     {
-        private const int NON_EXISTEN_USER_ID = 999;
+        private const int NON_EXISTENT_USER_ID = 999;
 
         [Test]
         public async Task GetUsers_AsAdmin_Success()
         {
-            await LoginAsAdmin(_client);
+            await LoginAsAdmin(Client);
 
-            var response = await _client.GetAsync("admin/users");
+            var response = await Client.GetAsync("admin/users");
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -19,7 +19,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         [Test]
         public async Task GetUsers_Anonymous_Unauthorized()
         {
-            var response = await _client.GetAsync("admin/users");
+            var response = await Client.GetAsync("admin/users");
 
             response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         }
@@ -27,9 +27,9 @@ namespace UserWallet.Tests.ControllersTests.Admin
         [Test]
         public async Task GetUsers_AsUser_Forbidden()
         {
-            await LoginAsUser(_client);
+            await LoginAsUser(Client);
 
-            var response = await _client.GetAsync("admin/users");
+            var response = await Client.GetAsync("admin/users");
 
             response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         }
@@ -37,7 +37,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         [Test]
         public async Task GetUsers_AsAdmin_ReturnsCorrectUsersCount()
         {
-            await LoginAsAdmin(_client);
+            await LoginAsAdmin(Client);
             
             var users = await GetUsers();
 
@@ -48,7 +48,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         [Test]
         public async Task Block_User_Success()
         {
-            await LoginAsAdmin(_client);
+            await LoginAsAdmin(Client);
 
             var response = await BlockUser(DEFAULT_USER_ID);
 
@@ -58,7 +58,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         [Test]
         public async Task Block_AsUser_Forbidden()
         {
-            await LoginAsUser(_client);
+            await LoginAsUser(Client);
 
             var response = await BlockUser(DEFAULT_USER_ID);
 
@@ -76,7 +76,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         [Test]
         public async Task Block_User_HasBecomeBlocked()
         {
-            await LoginAsAdmin(_client);
+            await LoginAsAdmin(Client);
 
             await BlockUser(DEFAULT_USER_ID);
             var users = await GetUsers();
@@ -90,9 +90,9 @@ namespace UserWallet.Tests.ControllersTests.Admin
         [Test]
         public async Task Block_NonExistenUser_NotFound()
         {
-            await LoginAsAdmin(_client);
+            await LoginAsAdmin(Client);
 
-            var response = await BlockUser(NON_EXISTEN_USER_ID);
+            var response = await BlockUser(NON_EXISTENT_USER_ID);
 
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
@@ -100,17 +100,17 @@ namespace UserWallet.Tests.ControllersTests.Admin
         [Test]
         public async Task Block_NotIntUserId_NotFound()
         {
-            await LoginAsAdmin(_client);
+            await LoginAsAdmin(Client);
 
-            var response = await _client.PatchAsJsonAsync($"admin/users/block/asdfg", "");
+            var response = await Client.PatchAsJsonAsync($"admin/users/block/asdfg", "");
 
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
         [Test]
-        public async Task Unblock_User_Success()
+        public async Task Unblock_AsAdmin_Success()
         {
-            await LoginAsAdmin(_client);
+            await LoginAsAdmin(Client);
 
             var response = await UnblockUser(DEFAULT_USER_ID);
 
@@ -120,7 +120,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         [Test]
         public async Task Unblock_AsUser_Forbidden()
         {
-            await LoginAsUser(_client);
+            await LoginAsUser(Client);
 
             var response = await UnblockUser(DEFAULT_USER_ID);
 
@@ -138,9 +138,9 @@ namespace UserWallet.Tests.ControllersTests.Admin
         [Test]
         public async Task Unblock_NonExistenUser_NotFound()
         {
-            await LoginAsAdmin(_client);
+            await LoginAsAdmin(Client);
 
-            var response = await UnblockUser(NON_EXISTEN_USER_ID);
+            var response = await UnblockUser(NON_EXISTENT_USER_ID);
 
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
@@ -148,9 +148,9 @@ namespace UserWallet.Tests.ControllersTests.Admin
         [Test]
         public async Task Unblock_NotIntUserId_NotFound()
         {
-            await LoginAsAdmin(_client);
+            await LoginAsAdmin(Client);
 
-            var response = await _client.PatchAsJsonAsync($"admin/users/unblock/asdfg", "");
+            var response = await Client.PatchAsJsonAsync($"admin/users/unblock/asdfg", "");
 
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
@@ -158,7 +158,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         [Test]
         public async Task Unblock_User_HasBecomeUnblocked()
         {
-            await LoginAsAdmin(_client);
+            await LoginAsAdmin(Client);
             await BlockUser(DEFAULT_USER_ID);
 
             await UnblockUser(DEFAULT_USER_ID);
@@ -171,15 +171,15 @@ namespace UserWallet.Tests.ControllersTests.Admin
         }
 
         private async Task<HttpResponseMessage> BlockUser(int userId)
-            => await _client.PatchAsJsonAsync($"admin/users/block/{userId}", "");
+            => await Client.PatchAsJsonAsync($"admin/users/block/{userId}", "");
 
         private async Task<HttpResponseMessage> UnblockUser(int userId)
-            => await _client.PatchAsJsonAsync($"admin/users/unblock/{userId}", "");
+            => await Client.PatchAsJsonAsync($"admin/users/unblock/{userId}", "");
 
         private async Task<List<User>?> GetUsers()
         {
-            var response = await _client.GetAsync("admin/users");
-            return await response.Content.ReadFromJsonAsync<List<User>>(TestOptions.JSON_OPTIONS);
+            var response = await Client.GetAsync("admin/users");
+            return await response.GetContentAsync<List<User>>();
         }
     }
 }

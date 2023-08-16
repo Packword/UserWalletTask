@@ -19,29 +19,25 @@
         [HttpPost("approve/{txId:int}")]
         public IActionResult ApproveTransaction(int txId)
         {
-            var transaction = _transactionService.GetTransactionById(txId);
-            if (transaction is null)
-                return NotFound();
-
-            if(transaction.Status != DepositStatus.Undecided)
-                return BadRequest();
-
-            _transactionService.ApproveTransaction(txId);
-            return Ok();
+            var (Result, Message) = _transactionService.ApproveTransaction(txId);
+            return Result switch
+            {
+                ServiceResult.Success => Ok(),
+                ServiceResult.NotFound => NotFound(),
+                _ => BadRequest(Message)
+            };
         }
 
         [HttpPost("decline/{txId:int}")]
         public IActionResult DeclineTransaction(int txId)
         {
-            var transaction = _transactionService.GetTransactionById(txId);
-            if (transaction is null)
-                return NotFound();
-
-            if (transaction.Status != DepositStatus.Undecided)
-                return BadRequest();
-
-            _transactionService.DeclineTransaction(txId);
-            return Ok();
+            var (Result, Message) = _transactionService.DeclineTransaction(txId);
+            return Result switch
+            {
+                ServiceResult.Success => Ok(),
+                ServiceResult.NotFound => NotFound(),
+                _ => BadRequest(Message)
+            };
         }
     }
 }

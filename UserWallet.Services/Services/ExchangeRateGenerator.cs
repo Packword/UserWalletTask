@@ -5,7 +5,7 @@
         private readonly IOptionsMonitor<ExchangeRateGeneratorOptions> _config;
         private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
         private readonly Random rnd = new();
-        private readonly Dictionary<string, decimal> currentRates = new();
+        private readonly Dictionary<string, decimal> rates = new();
 
         private List<Currency> currencies = new();
 
@@ -27,7 +27,7 @@
         {
             foreach (var currency in currencies)
             {
-                currentRates.Add(currency.Id, rnd.Next(80, 120));
+                rates.Add(currency.Id, rnd.Next(80, 120));
             }
         }
 
@@ -41,9 +41,9 @@
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                foreach (string key in currentRates.Keys)
+                foreach (string key in rates.Keys)
                 {
-                    currentRates[key] *= 1 + 0.05m * rnd.Next(-1, 2);
+                    rates[key] *= 1 + 0.05m * rnd.Next(-1, 2);
                 }   
                 await Task.Delay(_config.CurrentValue.UpdateInterval, stoppingToken);
             }
@@ -53,7 +53,7 @@
             => currencies;
 
         public Dictionary<string, decimal> GetCurrentRates()
-            => currentRates;
+            => rates;
 
         public Task StopAsync(CancellationToken cancellationToken)
             => Task.CompletedTask;

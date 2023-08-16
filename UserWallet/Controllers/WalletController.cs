@@ -36,7 +36,7 @@
         [Authorize(Roles = UsersRole.USER)]
         public Dictionary<string, BalanceDTO>? GetCurrentUserBalances()
         {
-            int id = HttpContext.GetCurrentUserId();
+            int id = HttpContext.GetCurrentUserId()!.Value;
             var balances = _userBalanceService.GetUserBalances(id);
             return ConvertToBalanceDTO(balances);
         }
@@ -44,7 +44,7 @@
         [HttpGet("tx")]
         [Authorize(Roles = UsersRole.USER)]
         public List<Deposit>? GetUserTransactions()
-            => _transactionService.GetUserDeposits(HttpContext.GetCurrentUserId());
+            => _transactionService.GetUserDeposits(HttpContext.GetCurrentUserId()!.Value);
 
         [HttpGet("{id:int}")]
         [Authorize(Roles = UsersRole.ADMIN)]
@@ -65,7 +65,7 @@
                 return BadRequest("Unavailable currency");
 
             Currency currency = currencies.First(c => c.Id == currencyId);
-            int userId = HttpContext.GetCurrentUserId();
+            int userId = HttpContext.GetCurrentUserId()!.Value;
             var result = currency.Type switch
             {
                 CurrencyType.Fiat => _depositFiatService.CreateDeposit(userId, depositDTO, currency.Id),

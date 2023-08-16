@@ -8,5 +8,11 @@
         [Required]
         [StringLength(8, MinimumLength = 4)]
         public string? Password { get; set; }
+
+        public SignUpDTO(string? username, string? password)
+        {
+            Username = username;
+            Password = password;
+        }
     }
 }

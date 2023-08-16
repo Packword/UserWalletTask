@@ -1,4 +1,6 @@
-﻿namespace UserWallet.Controllers
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace UserWallet.Controllers
 {
     [Route("[controller]")]
     [ApiController]
@@ -31,7 +33,7 @@
         [HttpPost("login")]
         async public Task<IActionResult> Login([FromBody] LoginDTO userDto)
         {
-            if (HttpContext.GetCurrentUserId() != -1)
+            if (HttpContext.GetCurrentUserId() is not null)
                 return BadRequest("The user is already logged in");
 
             if (!ModelState.IsValid)
@@ -42,7 +44,7 @@
                 return Unauthorized();
 
             user.Balances = _userBalanceService.GetUserBalances(user.Id);
-            var principal = _authService.GenerateClaims(user);
+            var principal = _authService.MakeClaims(user);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
             return Ok(user);
@@ -65,7 +67,13 @@
             if(!ModelState.IsValid)
                 return BadRequest(ModelState.Values.SelectMany(v => v.Errors));
 
-            _userService.ChangePassword(HttpContext.GetCurrentUserId(), model.NewPassword!);
+            int userId = HttpContext.GetCurrentUserId()!.Value;
+
+            var user = _userService.GetUserById(userId);
+            if (user!.Password != model.OldPassword)
+                return BadRequest("Wrong old password");
+
+            _userService.ChangePassword(userId, model.NewPassword!);
             return Ok();
         }
     }

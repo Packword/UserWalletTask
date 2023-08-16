@@ -2,6 +2,6 @@
 {
     public interface IAuthService
     {
-        public ClaimsPrincipal GenerateClaims(User user);
+        public ClaimsPrincipal MakeClaims(User user);
     }
 }

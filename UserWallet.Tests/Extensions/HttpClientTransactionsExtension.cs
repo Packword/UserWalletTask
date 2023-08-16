@@ -8,13 +8,13 @@
         public async static Task<List<Deposit>?> GetCurrentUserDeposits(this HttpClient client)
         {
             var response = await client.GetAsync("wallet/tx");
-            return await response.Content.ReadFromJsonAsync<List<Deposit>>(TestOptions.JSON_OPTIONS);
+            return await response.GetContentAsync<List<Deposit>>();
         }
 
         public async static Task<List<Deposit>?> GetTransactions(this HttpClient client)
         {
             var response = await client.GetAsync("admin/wallet/tx");
-            return await response.Content.ReadFromJsonAsync<List<Deposit>>(TestOptions.JSON_OPTIONS);
+            return await response.GetContentAsync<List<Deposit>>();
         }
 
         public async static Task<HttpResponseMessage> DeclineTransaction(this HttpClient client, int txId)

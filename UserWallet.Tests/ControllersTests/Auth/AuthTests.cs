@@ -2,67 +2,46 @@ namespace UserWallet.Tests.ControllersTests.Auth
 {
     public class AuthTests : BaseControllerTest
     {
-        [Test]
-        public async Task Login_AsAdmin_Success()
-        {
-            var response = await LoginAsAdmin(_client);
+        private static (string Username, string Password) Admin = new(ADMIN_USERNAME, ADMIN_PASSWORD);
+        private static (string Username, string Password) DefaultUser = new(DEFAULT_USER_USERNAME, DEFAULT_USER_PASSWORD);
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+        [TestCaseSource(nameof(AccessLoginTestData))]
+        public async Task Login_DifferentData_CorrectResponse((string Username, string Password)? user, HttpStatusCode exceptedResponse)
+        {
+            var response = await Login(user);
+
+            response.StatusCode.Should().Be(exceptedResponse);
         }
 
         [Test]
-        public async Task Login_AsUser_Success()
+        public async Task Login_ReLoginWithoutLogout_BadRequest()
         {
-            var response = await LoginAsUser(_client);
+            await LoginAsUser(Client);
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
-        }
-
-        [Test]
-        public async Task Login_ReLoginWithoutLogout_BadRequset()
-        {
-            await LoginAsUser(_client);
-
-            var response = await LoginAsAdmin(_client);
+            var response = await LoginAsAdmin(Client);
 
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
 
-        [Test]
-        public async Task Login_NonExistentUser_Unauthorized()
+        [TestCaseSource(nameof(AccessChangePasswordTestData))]
+        public async Task ChangePassword_CorrectData_CorrectResponse((string Username, string Password)? user, HttpStatusCode exceptedResponse, string oldPassword)
         {
-            var response = await _client.Login("Test", "Test");
+            await Login(user);
 
-            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        }
-
-        [Test]
-        public async Task Login_WithIncorrectData_BadRequest()
-        {
-            var response = await _client.Login(null, null);
-
-            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        }
-
-        [Test]
-        public async Task ChangePassword_AsAdmin_Success()
-        {
-            await LoginAsAdmin(_client);
-
-            var response = await _client.PatchAsJsonAsync(
+            var response = await Client.PatchAsJsonAsync(
                 "/auth/change-password", 
-                new ChangeUserPasswordDTO { NewPassword = "12345" }
+                new ChangeUserPasswordDTO { NewPassword = "12345", OldPassword = oldPassword }
             );
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            response.StatusCode.Should().Be(exceptedResponse);
         }
 
         [TestCaseSource(nameof(ChangePasswordIncorrectData))]
         public async Task ChangePassword_AsUserWithIncorrectData_BadRequest(ChangeUserPasswordDTO? passwordDto)
         {
-            await LoginAsUser(_client);
+            await LoginAsUser(Client);
 
-            var response = await _client.PatchAsJsonAsync(
+            var response = await Client.PatchAsJsonAsync(
                 "/auth/change-password",
                 passwordDto
             );
@@ -72,61 +51,44 @@ namespace UserWallet.Tests.ControllersTests.Auth
 
         private static IEnumerable<TestCaseData> ChangePasswordIncorrectData()
         {
-            yield return new TestCaseData( new ChangeUserPasswordDTO { NewPassword = "123" });
-            yield return new TestCaseData( new ChangeUserPasswordDTO { NewPassword = "12345678901234567890" });
-            yield return new TestCaseData( new ChangeUserPasswordDTO { NewPassword = null });
-            yield return new TestCaseData( new ChangeUserPasswordDTO());
+            yield return new TestCaseData( new ChangeUserPasswordDTO { NewPassword = "123", OldPassword = ADMIN_PASSWORD });
+            yield return new TestCaseData(new ChangeUserPasswordDTO { NewPassword = "12345", OldPassword = "1234567" });
+            yield return new TestCaseData( new ChangeUserPasswordDTO { NewPassword = "12345678901234567890", OldPassword = ADMIN_PASSWORD });
+            yield return new TestCaseData( new ChangeUserPasswordDTO { NewPassword = null, OldPassword = ADMIN_PASSWORD });
             yield return new TestCaseData( null ); 
         }
 
         [Test]
         public async Task ChangePassword_AsAdmin_SuccessLoginWithNewPassword()
         {
-            await LoginAsAdmin(_client);
-            await _client.PatchAsJsonAsync(
-                "/auth/change-password",
-                new ChangeUserPasswordDTO { NewPassword = "12345" }
-            );
-            await _client.Logout();
+            const string  NEW_PASSWORD = "12345";
 
-            var response = await _client.Login(ADMIN_USERNAME, "12345");
+            await LoginAsAdmin(Client);
+            await Client.PatchAsJsonAsync(
+                "/auth/change-password",
+                new ChangeUserPasswordDTO { NewPassword = NEW_PASSWORD, OldPassword = ADMIN_PASSWORD }
+            );
+            await Client.Logout();
+
+            var response = await Client.Login(ADMIN_USERNAME, NEW_PASSWORD);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
 
-        [Test]
-        public async Task ChangePassword_AsAnonymous_Unauthorized()
+        [TestCaseSource(nameof(AccessLogoutTestData))]
+        public async Task Logout_DifferentUsers_CorrectResponse((string Username, string Password)? user, HttpStatusCode exceptedResponse)
         {
-            var response = await _client.PatchAsJsonAsync(
-                "/auth/change-password",
-                new ChangeUserPasswordDTO { NewPassword = "12345" }
-            );
+            await Login(user);
 
-            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        }
+            var response = await Client.Logout();
 
-        [Test]
-        public async Task Logout_FromAdmin_Success()
-        {
-            await LoginAsAdmin(_client);
-
-            var response = await _client.Logout();
-
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
-        }
-
-        [Test]
-        public async Task Logout_AsAnonymous_Unauthorized()
-        {
-            var response = await _client.Logout();
-
-            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+            response.StatusCode.Should().Be(exceptedResponse);
         }
 
         [Test]
         public async Task SignUp_CorrectUser_Success()
         {
-            var response = await _client.SignUp("ForTest", "Test");
+            var response = await Client.SignUp("ForTest", "Test");
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -134,7 +96,7 @@ namespace UserWallet.Tests.ControllersTests.Auth
         [Test]
         public async Task SignUp_ExistingUser_BadRequest()
         {
-            var response = await _client.SignUp(ADMIN_USERNAME, "Test");
+            var response = await Client.SignUp(ADMIN_USERNAME, "Test");
 
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
@@ -142,7 +104,7 @@ namespace UserWallet.Tests.ControllersTests.Auth
         [TestCaseSource(nameof(SignUpIncorrectData))]
         public async Task SignUp_IncorrectUser_BadRequest(string? username, string password)
         {
-            var response = await _client.SignUp(username, password);
+            var response = await Client.SignUp(username, password);
 
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
@@ -158,14 +120,41 @@ namespace UserWallet.Tests.ControllersTests.Auth
             yield return new TestCaseData("12345678901234567890", "12345");
         }
 
+        private static IEnumerable<TestCaseData> AccessLoginTestData()
+        {
+            yield return new TestCaseData(Admin, HttpStatusCode.OK);
+            yield return new TestCaseData(DefaultUser, HttpStatusCode.OK);
+            yield return new TestCaseData(("Test", "Test"), HttpStatusCode.Unauthorized);
+            yield return new TestCaseData(null, HttpStatusCode.BadRequest);
+        }
+        private static IEnumerable<TestCaseData> AccessChangePasswordTestData()
+        {
+            yield return new TestCaseData(Admin, HttpStatusCode.OK, ADMIN_PASSWORD);
+            yield return new TestCaseData(DefaultUser, HttpStatusCode.OK, DEFAULT_USER_PASSWORD);
+            yield return new TestCaseData(("Test", "Test"), HttpStatusCode.Unauthorized, "1234");
+        }
+
+        private static IEnumerable<TestCaseData> AccessLogoutTestData()
+        {
+            yield return new TestCaseData(Admin, HttpStatusCode.OK);
+            yield return new TestCaseData(DefaultUser, HttpStatusCode.OK);
+            yield return new TestCaseData(("Test", "Test"), HttpStatusCode.Unauthorized);
+        }
+
         [Test]
         public async Task SignUp_CorrectUser_SuccessLoginAsNewUser()
         {
-            await _client.SignUp("ForTest", "Test");
+            const string USERNAME = "ForTest";
+            const string PASSWORD = "Test";
 
-            var response = await _client.Login("ForTest", "Test");
+            await Client.SignUp(USERNAME, PASSWORD);
+
+            var response = await Client.Login(USERNAME, PASSWORD);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
+
+        private async Task<HttpResponseMessage> Login((string Username, string Password)? user)
+            => await Client.Login(user?.Username, user?.Password);
     }
 }
