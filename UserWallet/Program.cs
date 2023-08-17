@@ -14,15 +14,21 @@ namespace UserWallet
                 SeedDataFromJson.Initialize(scope.ServiceProvider);
             }
 
-            if (app.Environment.IsDevelopment())
+            if (!app.Environment.IsDevelopment())
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseExceptionHandler("/Error");
             }
+
+            app.UseStaticFiles();
+
+            app.UseRouting();
+
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.MapBlazorHub();
             app.MapControllers();
+            app.MapFallbackToPage("/_Host");
 
             app.Run();
         }
@@ -55,6 +61,8 @@ namespace UserWallet
                    return Task.CompletedTask;
                };
            });
+            services.AddRazorPages();
+            services.AddServerSideBlazor();
             services.AddAuthorization();
             services.AddScoped<IConvertToUsdService, ConvertToUsdService>();
             services.AddScoped<IUserService, UserService>();
@@ -68,7 +76,6 @@ namespace UserWallet
             services.AddDbContextFactory<ApplicationDbContext>(options =>
                 options.UseNpgsql(configuration.GetConnectionString("ApplicationDbContext")));
             services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen();
         }
     }
 }
