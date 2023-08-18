@@ -3,9 +3,10 @@
 <PageTitle>Index</PageTitle>
 <AuthorizeView>
     <Authorized>
-        юзер
+        Hello, @context.User.FindFirst(ClaimTypes.Name).Value <br />
+        Your role is @context.User.FindFirst(ClaimTypes.Role).Value
     </Authorized>
     <NotAuthorized>
-        форма логина
+        <Login />
     </NotAuthorized>
 </AuthorizeView>

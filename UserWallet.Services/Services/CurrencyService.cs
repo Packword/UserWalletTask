@@ -1,5 +1,4 @@
-﻿
-namespace UserWallet.Services.Services
+﻿namespace UserWallet.Services
 {
     public class CurrencyService: ICurrencyService
     {

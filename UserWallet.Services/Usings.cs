@@ -12,3 +12,4 @@ global using UserWallet.OptionsModels;
 global using Microsoft.Extensions.Hosting;
 global using Microsoft.Extensions.Options;
 global using Microsoft.AspNetCore.Authentication.Cookies;
+global using Microsoft.Extensions.DependencyInjection;

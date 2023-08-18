@@ -1,4 +1,4 @@
-
+using UserWallet.Data.Auth;
 using UserWallet.Services.Services;
 
 namespace UserWallet
@@ -63,6 +63,9 @@ namespace UserWallet
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddAuthorization();
+            services.AddHttpClient();
+            services.AddSingleton<UserStore>();
+            services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
             services.AddHostedService<SeedDataFromJsonService>();
             services.AddScoped<IConvertToUsdService, ConvertToUsdService>();
             services.AddScoped<ICurrencyService, CurrencyService>();

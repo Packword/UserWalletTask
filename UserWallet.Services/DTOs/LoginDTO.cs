@@ -7,7 +7,7 @@
         [Required]
         public string? Password { get; set; }
 
-
+        public LoginDTO() { }
         public LoginDTO(string? username, string? password)
         {
             Username = username;

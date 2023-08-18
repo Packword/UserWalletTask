@@ -1,5 +1,4 @@
-﻿
-namespace UserWallet.Services
+﻿namespace UserWallet.Services
 {
     public class SeedDataFromJsonService : BackgroundService
     {
