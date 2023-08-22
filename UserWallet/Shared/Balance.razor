@@ -4,11 +4,11 @@
     <th>@String.Format("{0: 0.000}", UsdAmount)</th>
     <th>
         <AuthorizeView Roles="User">
-            <button class="btn btn-primary" @onclick="@ModalShow">Deposit</button>
-            @if (showDepositModal)
-            {
-                <DepositModal OnDepositCreated="@HandleOnDepositCreated" CurrencyId="@Currency" />
-            }
+        <button class="btn btn-primary" @onclick="@ModalShow">Deposit</button>
+        @if (showDepositModal)
+        {
+            <DepositModal OnDepositCreated="@HandleOnDepositCreated" CurrencyId="@Currency" />
+        }
         </AuthorizeView>
         <AuthorizeView Roles="Admin">
             <button class="btn btn-primary">Transactions</button>
