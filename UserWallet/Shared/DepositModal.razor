@@ -1,0 +1,65 @@
+﻿@inject ICurrencyService CurrencyService
+@inject IDepositCryptoService DepositCryptoService
+@inject IDepositFiatService DepositFiatService
+@inject UserStore UserStore
+
+@if(currentCurrency is null)
+{
+    <p>Loading...</p>
+}
+else if(currentCurrency.IsAvailable == false){
+   <p>Currency is unavailable</p>
+}
+else{
+    <input type="number" step=".1" min="0.1" max="100" placeholder="Amount" @bind-value="Deposit.Amount"/>
+    @switch (currentCurrency.Type)
+    {
+        case CurrencyType.Fiat:
+            <input type="text" minlength="16" maxlength="16" placeholder="Card number" @bind-value="Deposit.CardNumber"/>
+            <input type="text" minlength="2" maxlength="16" placeholder="Cardholder name" @bind-value="Deposit.CardholderName" />
+            break;
+        case CurrencyType.Crypto:
+            <input type="text" minlength="16" maxlength="16" placeholder="Address" @bind-value="Deposit.Address" />
+            break;
+    }
+
+    <button class="btn btn-primary" @onclick="CreateDeposit">Deposit</button>
+    @if(ValidationResult is not "")
+    {
+        <p>@ValidationResult</p>
+    }
+}
+
+@code {
+    [Parameter] public string CurrencyId { get; set; }
+    [Parameter] public EventCallback<bool> OnDepositCreated { get; set; }
+
+    public DepositDTO Deposit { get; set; } = new DepositDTO();
+    public string ValidationResult { get; set; } = "";
+
+    private List<Currency>? currencies;
+    private Currency? currentCurrency;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        currencies = CurrencyService.GetCurrencies();
+        currentCurrency = currencies?.FirstOrDefault(c => c.Id == CurrencyId);
+    }
+
+    public void CreateDeposit()
+    {
+        var userId = UserStore.CurrentUser.GetId()!.Value;
+        (bool Result, string Message) = currentCurrency?.Type switch
+        {
+            CurrencyType.Fiat => DepositFiatService.CreateDeposit(userId, Deposit, CurrencyId),
+            CurrencyType.Crypto => DepositCryptoService.CreateDeposit(userId, Deposit, CurrencyId),
+            _ => (false, "Unknown type"),
+        };
+        if (!Result)
+            ValidationResult = Message;
+        else
+            OnDepositCreated.InvokeAsync();
+    }
+}

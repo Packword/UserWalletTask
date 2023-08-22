@@ -2,6 +2,6 @@
 {
     public interface IDepositCryptoService
     {
-        public bool CreateDeposit(int userId, DepositDTO deposit, string currencyId);
+        public (bool Result, string Message) CreateDeposit(int userId, DepositDTO deposit, string currencyId);
     }
 }

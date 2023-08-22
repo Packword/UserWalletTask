@@ -1,0 +1,27 @@
+﻿<tr>
+    <th>@Currency</th>
+    <th>@String.Format("{0: 0.000}", Amount)</th>
+    <th>@String.Format("{0: 0.000}", UsdAmount)</th>
+    <th>
+        <button class="btn btn-primary" @onclick="@ModalShow">Deposit</button>
+        @if (showDepositModal)
+        {
+            <DepositModal OnDepositCreated="@HandleOnDepositCreated" CurrencyId="@Currency" />
+        }
+    </th>
+</tr>
+
+@code {
+    [Parameter] public string Currency { get; set; }
+    [Parameter] public decimal Amount { get; set; }
+    [Parameter] public decimal UsdAmount { get; set; }
+
+    private bool showDepositModal;
+
+    public void ModalShow()
+        => showDepositModal = true;
+
+    public void HandleOnDepositCreated()
+        => showDepositModal = false;
+
+}

@@ -1,0 +1,10 @@
+﻿@page "/wallet"
+
+@inject UserStore UserStore
+
+@attribute [Authorize(Roles = "User")]
+
+<PageTitle>Wallet</PageTitle>
+
+<h3> Wallet </h3>
+<BalancePage UserId="@UserStore.CurrentUser.GetId()!.Value" />
