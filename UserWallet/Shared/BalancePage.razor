@@ -1,0 +1,30 @@
+﻿@inject IUserBalanceService UserBalanceService
+
+@if(balances is null)
+{
+    <h4>Loading...</h4>
+}
+else{
+    <p>Total Usd @String.Format("{0: 0.000}", totalUsd)</p>
+    <BalanceList>
+        @foreach (var balance in balances)
+        {
+            <Balance Currency="@balance.Key" Amount="balance.Value.Amount" UsdAmount="balance.Value.UsdAmount" />
+        }
+    </BalanceList>
+}
+@code {
+    [Parameter] public int UserId { get; set; }
+
+    private Dictionary<string, BalanceDTO> balances;
+    private decimal totalUsd;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        var userBalances = UserBalanceService.GetUserBalances(UserId).Balances;
+        balances = UserBalanceService.ConvertToBalanceDTO(userBalances);
+        totalUsd = balances.Values.Select(v => v.UsdAmount).Aggregate((x, y) => x + y);
+    }
+}

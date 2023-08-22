@@ -23,7 +23,7 @@
             return Result switch
             {
                 ServiceResult.Success => Ok(),
-                ServiceResult.NotFound => NotFound(),
+                ServiceResult.NotFound => NotFound(Message),
                 _ => BadRequest(Message)
             };
         }

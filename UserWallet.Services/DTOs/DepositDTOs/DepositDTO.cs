@@ -2,8 +2,6 @@
 {
     public class DepositDTO
     {
-        [Range(0.1, 100)]
-        [Required]
         public decimal Amount { get; set; }
         public string? Address { get; set; }
         public string? CardNumber { get; set; }
@@ -16,5 +14,7 @@
             CardholderName = cardholderName;
             Address = address;
         }
+
+        public DepositDTO() { }
     }
 }

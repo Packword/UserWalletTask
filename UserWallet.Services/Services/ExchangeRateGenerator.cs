@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
-namespace UserWallet.Services
+﻿namespace UserWallet.Services
 {
     public class ExchangeRateGenerator : IHostedService
     {
