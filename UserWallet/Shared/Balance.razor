@@ -6,11 +6,11 @@
     <th>@String.Format("{0: 0.000}", UsdAmount)</th>
     <th>
         <AuthorizeView Roles="@UsersRole.USER">
-            <button class="btn btn-primary" @onclick="@ModalShow">Deposit</button>
-            @if (showDepositModal)
-            {
-                <DepositModal OnDepositCreated="@HandleOnDepositCreated" CurrencyId="@Currency" />
-            }
+        <button class="btn btn-primary" @onclick="@ModalShow">Deposit</button>
+        @if (showDepositModal)
+        {
+            <DepositModal OnDepositCreated="@HandleOnDepositCreated" CurrencyId="@Currency" />
+        }
         </AuthorizeView>
         <AuthorizeView Roles="@UsersRole.ADMIN">
             <button class="btn btn-primary" @onclick="GoToCurrencyTransactions">Transactions</button>
