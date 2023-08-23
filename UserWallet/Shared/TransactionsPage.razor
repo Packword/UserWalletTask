@@ -1,0 +1,30 @@
+﻿@inject ITransactionService TransactionService
+
+@if (transactions is null)
+{
+    <h4>Loading...</h4>
+}
+else
+{
+    <TransactionsList>
+        @foreach (var transaction in transactions)
+        {
+            <p>@transaction.CurrencyId ------ @transaction.Amount ---- @transaction.UserId</p>
+        }
+    </TransactionsList>
+}
+
+
+@code {
+    [Parameter] public IEnumerable<int> UsersId { get; set; }
+    [Parameter] public IEnumerable<string>? CurrenciesId { get; set; } = null;
+
+    private List<Deposit>? transactions;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        transactions = TransactionService.GetDepositsWithFiltration(UsersId, CurrenciesId, null, true);
+    }
+}

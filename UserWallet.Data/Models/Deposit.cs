@@ -11,6 +11,9 @@
         [Column("user_id")]
         public int UserId { get; set; }
 
+        [Column("created_on")]
+        public DateTime CreatedOn { get; set; }
+
         public User? User { get; set; }
 
         [MaxLength(30)]
@@ -27,5 +30,10 @@
 
         [Column("status")]
         public DepositStatus Status { get; set; }
+
+        public Deposit()
+        {
+            CreatedOn = DateTime.UtcNow;
+        }
     }
 }
