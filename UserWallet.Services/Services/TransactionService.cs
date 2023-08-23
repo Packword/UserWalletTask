@@ -14,6 +14,24 @@
         public List<Deposit> GetAllDeposits()
             => _db.Deposits.ToList();
 
+        public List<Deposit> GetDepositsWithFiltration(IEnumerable<int>? usersId = null,
+                                                       IEnumerable<string>? currenciesId = null,
+                                                       IEnumerable<DepositStatus>? statuses = null,
+                                                       bool byDate = false)
+        {
+            var transactions = _db.Deposits.AsQueryable();
+            if (currenciesId is not null)
+                transactions = transactions.Where(t => currenciesId.Contains(t.CurrencyId));
+            if (statuses is not null)
+                transactions = transactions.Where(s => statuses.Contains(s.Status));
+            if (usersId is not null)
+                transactions = transactions.Where(t => usersId.Contains(t.UserId));
+            if (byDate)
+                transactions.OrderBy(t => t.CreatedOn);
+
+            return transactions.ToList();
+        }
+
         public List<Deposit> GetUserDeposits(int userId)
             => _db.Deposits.Where(d => d.UserId == userId).ToList();
 

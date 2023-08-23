@@ -16,7 +16,7 @@ else{
 @code {
     [Parameter] public int UserId { get; set; }
 
-    private Dictionary<string, BalanceDTO> balances;
+    private Dictionary<string, BalanceDTO>? balances;
     private decimal totalUsd;
 
     protected override void OnInitialized()

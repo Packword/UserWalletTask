@@ -1,0 +1,27 @@
+﻿@page "/transactions"
+
+@inject UserStore UserStore
+@inject IUserService UserService
+
+@attribute [Authorize]
+
+<PageTitle>Transactions</PageTitle>
+
+<h3>Transactions</h3>
+
+<TransactionsPage UsersId="usersId" />
+
+@code{
+    private IEnumerable<int>? usersId = null;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        if (UserStore.CurrentUser.IsInRole("Admin"))
+            usersId = UserService.GetUsers().Select(u => u.Id);
+
+        if (UserStore.CurrentUser.IsInRole("User"))
+            usersId = new List<int>() { UserStore.CurrentUser.GetId()!.Value };
+    }
+}

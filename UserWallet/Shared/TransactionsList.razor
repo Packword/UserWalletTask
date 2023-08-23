@@ -1,0 +1,20 @@
+﻿<div class="transactions-list-container">
+    <table>
+        <tr>
+            <th>Date</th>
+            <AuthorizeView Roles="Admin">
+                <th>UserId</th>
+            </AuthorizeView>
+            <th>Amount + Currency</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+        @{
+            @ChildContent
+        }
+    </table>
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

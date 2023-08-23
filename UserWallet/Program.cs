@@ -10,21 +10,31 @@ namespace UserWallet
             var app = builder.Build();
             app.UseCors();
 
+            if (app.Environment.IsEnvironment("Swagger"))
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
+
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Error");
             }
 
             app.UseStaticFiles();
-
-            app.UseRouting();
-
+            if (!app.Environment.IsEnvironment("Swagger"))
+            {
+                app.UseRouting();
+            }
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.MapBlazorHub();
+            if (!app.Environment.IsEnvironment("Swagger"))
+            {
+                app.MapBlazorHub();
+                app.MapFallbackToPage("/_Host");
+            }
             app.MapControllers();
-            app.MapFallbackToPage("/_Host");
 
             app.Run();
         }
@@ -57,6 +67,9 @@ namespace UserWallet
                    return Task.CompletedTask;
                };
            });
+
+            services.AddSwaggerGen();
+
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddAuthorization();
