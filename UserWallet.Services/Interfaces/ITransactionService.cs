@@ -10,8 +10,7 @@
                                                        IEnumerable<DepositStatus>? statuses = null,
                                                        bool byDate = false);
 
-        public (ServiceResult Result, string Message) ApproveTransaction(int txId);
-        public (ServiceResult Result, string Message) DeclineTransaction(int txId);
+        public (ServiceResult Result, string Message) DecideTransactionStatus(int txId, DepositStatus status);
         public Deposit? GetTransactionById(int txId);
     }
 }
