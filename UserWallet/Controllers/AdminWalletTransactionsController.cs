@@ -19,7 +19,7 @@
         [HttpPost("approve/{txId:int}")]
         public IActionResult ApproveTransaction(int txId)
         {
-            var (Result, Message) = _transactionService.ApproveTransaction(txId);
+            var (Result, Message) = _transactionService.DecideTransactionStatus(txId, DepositStatus.Approved);
             return Result switch
             {
                 ServiceResult.Success => Ok(),
@@ -31,7 +31,7 @@
         [HttpPost("decline/{txId:int}")]
         public IActionResult DeclineTransaction(int txId)
         {
-            var (Result, Message) = _transactionService.DeclineTransaction(txId);
+            var (Result, Message) = _transactionService.DecideTransactionStatus(txId, DepositStatus.Declined);
             return Result switch
             {
                 ServiceResult.Success => Ok(),

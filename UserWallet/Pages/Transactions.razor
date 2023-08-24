@@ -2,6 +2,7 @@
 
 @inject UserStore UserStore
 @inject IUserService UserService
+@inject ExchangeRateGenerator ExchangeRateGenerator
 
 @attribute [Authorize]
 
@@ -9,17 +10,20 @@
 
 <h3>Transactions</h3>
 
-<TransactionsPage UsersId="usersId" />
+<TransactionsPage UsersId="usersId" CurrenciesId="currenciesId" />
 
 @code{
-    private IEnumerable<int>? usersId = null;
+    private List<int>? usersId = null;
+    private List<string>? currenciesId = null;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
 
+        currenciesId = ExchangeRateGenerator.GetCurrencies().Select(c => c.Id).ToList();
+
         if (UserStore.CurrentUser.IsInRole("Admin"))
-            usersId = UserService.GetUsers().Select(u => u.Id);
+            usersId = UserService.GetUsers().Select(u => u.Id).ToList();
 
         if (UserStore.CurrentUser.IsInRole("User"))
             usersId = new List<int>() { UserStore.CurrentUser.GetId()!.Value };

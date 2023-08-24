@@ -35,7 +35,7 @@
         public List<Deposit> GetUserDeposits(int userId)
             => _db.Deposits.Where(d => d.UserId == userId).ToList();
 
-        public (ServiceResult Result, string Message) ApproveTransaction(int txId)
+        public (ServiceResult Result, string Message) DecideTransactionStatus(int txId, DepositStatus status)
         {
             var transaction = _db.Deposits.FirstOrDefault(d => d.Id == txId);
             if(transaction is null)
@@ -43,22 +43,11 @@
             if (transaction.Status != DepositStatus.Undecided)
                 return (ServiceResult.NotValid, "Deposit status already decided");
 
-            transaction.Status = DepositStatus.Approved;
-            _userBalanceService.AddUserBalance(transaction.UserId, transaction.CurrencyId, transaction.Amount);
-            _db.SaveChanges();
-            return (ServiceResult.Success, "");
-        }
-
-        public (ServiceResult Result, string Message) DeclineTransaction(int txId)
-        {
-            var transaction = GetTransactionById(txId);
-            if (transaction is null)
-                return (ServiceResult.NotFound, "Transaction not found");
-            if (transaction.Status != DepositStatus.Undecided)
-                return (ServiceResult.NotValid, "Deposit status already decided");
-
-
-            transaction.Status = DepositStatus.Declined;
+            transaction.Status = status;
+            if (status is DepositStatus.Approved)
+            {
+                _userBalanceService.AddUserBalance(transaction.UserId, transaction.CurrencyId, transaction.Amount);
+            }
             _db.SaveChanges();
             return (ServiceResult.Success, "");
         }
