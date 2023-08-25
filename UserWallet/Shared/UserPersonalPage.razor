@@ -1,0 +1,27 @@
+﻿@inject IUserService UserService
+@if (user is not null)
+{
+    @user.Username
+
+@(user.IsBlocked ? "Blocked" : "Unblocked")
+
+    <BalancePage UserId="@UserId" />
+}
+else
+{
+    <h3>User not found</h3>
+}
+<BackButton />
+
+@code {
+    [Parameter] public int UserId { get; set; }
+
+    private User? user;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        user = UserService.GetUserById(UserId);
+    }
+}

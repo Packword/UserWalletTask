@@ -10,12 +10,12 @@
     <td>
         @if (Model.Status is DepositStatus.Undecided)
         {
-            <AuthorizeView Roles="Admin">
-                <button class="btn btn-success" @onclick="() => ChangeTransactionStatus(Model.Id, DepositStatus.Approved)">Approve</button>
-                <button class="btn btn-danger" @onclick="() => ChangeTransactionStatus(Model.Id, DepositStatus.Declined)">Decline</button>
+            <AuthorizeView Roles="@UsersRole.ADMIN">
+                <button class="btn btn-success" @onclick="() => ChangeTransactionStatus(TransactionModel.Id, DepositStatus.Approved)">Approve</button>
+                <button class="btn btn-danger" @onclick="() => ChangeTransactionStatus(TransactionModel.Id, DepositStatus.Declined)">Decline</button>
             </AuthorizeView>
-            <AuthorizeView Roles="User">
-                <button class="btn btn-danger" @onclick="() => ChangeTransactionStatus(Model.Id, DepositStatus.Canceled)">Cancel</button>
+            <AuthorizeView Roles="@UsersRole.USER">
+                <button class="btn btn-danger" @onclick="() => ChangeTransactionStatus(TransactionModel.Id, DepositStatus.Canceled)">Cancel</button>
             </AuthorizeView>
             @statusChangeResult
         }

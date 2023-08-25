@@ -1,0 +1,16 @@
+﻿<div class="users-list-container">
+    <table>
+        <tr>
+            <th>Username</th>
+            <th>Usd balance</th>
+            <th>Buttons</th>
+        </tr>
+        @{
+            @ChildContent
+        }
+    </table>
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

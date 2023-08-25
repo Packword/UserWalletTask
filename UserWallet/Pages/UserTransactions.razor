@@ -1,0 +1,28 @@
+﻿@page "/transactions/{userId:int}"
+
+@inject ExchangeRateGenerator ExchangeRateGenerator
+
+@attribute [Authorize(Roles = UsersRole.ADMIN)]
+
+<PageTitle>Transactions</PageTitle>
+
+<h3>Transactions</h3>
+
+<TransactionsPage UsersId="usersId" CurrenciesId="currenciesId" IsFilteredByUser="false"/>
+
+<BackButton />
+
+@code {
+    [Parameter] public int UserId { get; set; }
+
+    private List<int>? usersId = null;
+    private List<string>? currenciesId = null;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        usersId = new List<int>() { UserId };
+        currenciesId = ExchangeRateGenerator.GetCurrencies().Select(c => c.Id).ToList();
+    }
+}

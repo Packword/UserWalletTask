@@ -1,0 +1,11 @@
+﻿@page "/users/{userId:int}"
+
+@attribute [Authorize(Roles = UsersRole.ADMIN)]
+
+<PageTitle>Personal page</PageTitle>
+
+<UserPersonalPage UserId="@UserId"></UserPersonalPage>
+
+@code {
+    [Parameter] public int UserId { get; set; }
+}

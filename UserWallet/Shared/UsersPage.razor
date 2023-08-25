@@ -1,0 +1,42 @@
+﻿@inject IUserService UserService
+
+@if(users is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <input type="text" class="form-control w-25" placeholder="Username..." min="0" @bind-value="@choosenUsername" />
+    <button class="btn btn-primary" @onclick="() => FilterUsers(choosenUsername)">Search</button>
+    <UsersList>
+        @if (currentUsers is not null)
+        {
+            @foreach (var user in currentUsers)
+            {
+                <UserView UserModel="@user" />
+            }
+        }
+    </UsersList>
+}
+
+@code {
+    private List<User>? users;
+    private List<User>? currentUsers;
+    private string? choosenUsername;
+
+    private void FilterUsers(string username)
+    {
+        if (choosenUsername is not null and not "")
+            currentUsers = users?.Where(t => t.Username == username).ToList();
+        else
+            currentUsers = users;
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        users = UserService.GetUsers().OrderBy(u => u.Username).ToList();
+        currentUsers = users;
+    }
+}

@@ -25,6 +25,12 @@
 
     private bool showDepositModal;
 
+    private void GoToCurrencyTransactions()
+    {
+        if(UserId is not null)
+            Navigation.NavigateTo($"/transactions/{UserId}/{Currency}");
+    }
+
     public void ModalShow()
         => showDepositModal = true;
 
