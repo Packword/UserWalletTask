@@ -22,10 +22,10 @@
 
         currenciesId = CurrencyService.GetCurrencies()?.Select(c => c.Id).ToList();
 
-        if (UserStore.CurrentUser.IsInRole("Admin"))
+        if (UserStore.CurrentUser.IsInRole(UsersRole.ADMIN))
             usersId = UserService.GetUsers().Select(u => u.Id).ToList();
 
-        if (UserStore.CurrentUser.IsInRole("User"))
+        if (UserStore.CurrentUser.IsInRole(UsersRole.USER))
             usersId = new List<int>() { UserStore.CurrentUser.GetId()!.Value };
     }
 }

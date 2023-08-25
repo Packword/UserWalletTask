@@ -20,7 +20,6 @@
     private async Task OnSignIn(LoginDTO LoginModel)
     {
         var client = ClientFactory.CreateClient();
-        Console.WriteLine($"username {LoginModel.Username} --- password {LoginModel.Password}");
         Response = await client.PostAsJsonAsync("http://localhost:5140/auth/login", LoginModel);
         if (Response.StatusCode is HttpStatusCode.OK) await OnSuccess();
     }

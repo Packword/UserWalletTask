@@ -2,7 +2,7 @@
 
 <tr style="@StyleByStatus(TransactionModel.Status)">
     <th>@TransactionModel.CreatedOn</th>
-    <AuthorizeView Roles="Admin">
+    <AuthorizeView Roles="@UsersRole.ADMIN">
         <th>@TransactionModel.UserId</th>
     </AuthorizeView>
     <th>@TransactionModel.Amount @TransactionModel.CurrencyId</th>
@@ -10,11 +10,11 @@
     <th>
         @if (TransactionModel.Status is DepositStatus.Undecided)
         {
-            <AuthorizeView Roles="Admin">
+            <AuthorizeView Roles="@UsersRole.ADMIN">
                 <button class="btn btn-success" @onclick="() => ChangeTransactionStatus(TransactionModel.Id, DepositStatus.Approved)">Approve</button>
                 <button class="btn btn-danger" @onclick="() => ChangeTransactionStatus(TransactionModel.Id, DepositStatus.Declined)">Decline</button>
             </AuthorizeView>
-            <AuthorizeView Roles="User">
+            <AuthorizeView Roles="@UsersRole.USER">
                 <button class="btn btn-danger" @onclick="() => ChangeTransactionStatus(TransactionModel.Id, DepositStatus.Canceled)">Cancel</button>
             </AuthorizeView>
             @statusChangeResult

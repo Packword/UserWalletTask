@@ -30,10 +30,13 @@ else
                     }
                 </table>
             }
-            <AuthorizeView Roles="Admin">
-                <input type="number" class="form-control w-25" placeholder="UserId..." min="0" @bind-value="@choosenUserId"/>
-                <button class="btn btn-primary" @onclick="FilterTransactions">Search</button>
-            </AuthorizeView>
+            @if (IsFilteredByUser)
+            {
+                <AuthorizeView Roles="@UsersRole.ADMIN">
+                    <input type="number" class="form-control w-25" placeholder="UserId..." min="0" @bind-value="@choosenUserId"/>
+                    <button class="btn btn-primary" @onclick="FilterTransactions">Search</button>
+                </AuthorizeView>
+            }
         }
     </div>
     <TransactionsList>
@@ -52,6 +55,7 @@ else
     [Parameter] public IEnumerable<int>? UsersId { get; set; }
     [Parameter] public IEnumerable<string>? CurrenciesId { get; set; }
     [Parameter] public bool IsCurrencyTransactions { get; set; }
+    [Parameter] public bool IsFilteredByUser { get; set; }
 
     private int? choosenUserId;
     private Array statuses = Enum.GetValues(typeof(DepositStatus));

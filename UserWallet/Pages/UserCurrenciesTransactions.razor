@@ -1,0 +1,29 @@
+﻿@page "/transactions/{userId:int}/{currency}"
+
+@attribute [Authorize(Roles = UsersRole.ADMIN)]
+
+<PageTitle>Transactions</PageTitle>
+
+<h3>Transactions</h3>
+
+<TransactionsPage UsersId="usersId" CurrenciesId="currenciesId" IsCurrencyTransactions="true" />
+
+<BackButton />
+
+@code {
+    [Parameter] public string Currency { get; set; }
+    [Parameter] public int UserId { get; set; }
+
+    private List<int>? usersId = null;
+    private List<string>? currenciesId = null;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+
+
+        usersId = new List<int>() { UserId };
+        currenciesId = new List<string> { Currency };
+    }
+}

@@ -9,7 +9,7 @@ else{
     <BalanceList>
         @foreach (var balance in balances)
         {
-            <Balance Currency="@balance.Key" Amount="balance.Value.Amount" UsdAmount="balance.Value.UsdAmount" />
+            <Balance Currency="@balance.Key" Amount="@balance.Value.Amount" UsdAmount="@balance.Value.UsdAmount" UserId="@UserId" />
         }
     </BalanceList>
 }
