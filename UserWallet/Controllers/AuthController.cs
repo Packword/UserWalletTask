@@ -43,7 +43,7 @@ namespace UserWallet.Controllers
             if (user is null)
                 return Unauthorized();
 
-            user.Balances = _userBalanceService.GetUserBalances(user.Id);
+            user.Balances = _userBalanceService.GetUserBalances(user.Id).Balances;
             var principal = _authService.MakeClaims(user);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 

@@ -6,32 +6,14 @@ namespace UserWallet.Tests.ControllersTests.Admin
     {
         private const int NON_EXISTENT_USER_ID = 999;
 
-        [Test]
-        public async Task GetUsers_AsAdmin_Success()
+        [TestCaseSource(nameof(AccessGetUsersData))]
+        public async Task GetUsers_DifferentUsers_CorrectAnswer(string? username, string? password, HttpStatusCode expectedResult)
         {
-            await LoginAsAdmin(Client);
+            await Client.Login(username, password);
 
             var response = await Client.GetUsers();
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
-        }
-
-        [Test]
-        public async Task GetUsers_Anonymous_Unauthorized()
-        {
-            var response = await Client.GetUsers();
-
-            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        }
-
-        [Test]
-        public async Task GetUsers_AsUser_Forbidden()
-        {
-            await LoginAsUser(Client);
-
-            var response = await Client.GetUsers();
-
-            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            response.StatusCode.Should().Be(expectedResult);
         }
 
         [Test]
@@ -45,34 +27,27 @@ namespace UserWallet.Tests.ControllersTests.Admin
             users!.Should().HaveCount(DEFAULT_USERS_COUNT);
         }
 
-        [Test]
-        public async Task Block_User_Success()
+        [TestCaseSource(nameof(BlockAndUnblockUserData))]
+        public async Task Block_DifferentUsers_CorrectAnswer(string? username, string? password, string? userId, HttpStatusCode expectedResult)
         {
-            await LoginAsAdmin(Client);
+            await Client.Login(username, password);
 
-            var response = await Client.BlockUser(DEFAULT_USER_ID.ToString());
+            var response = await Client.BlockUser(userId);
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            response.StatusCode.Should().Be(expectedResult);
         }
 
-        [Test]
-        public async Task Block_AsUser_Forbidden()
+        [TestCaseSource(nameof(BlockAndUnblockUserData))]
+        public async Task Unblock_DifferentUsers_CorrectAnswer(string? username, string? password, string? userId, HttpStatusCode expectedResult)
         {
-            await LoginAsUser(Client);
+            await Client.Login(username, password);
 
-            var response = await Client.BlockUser(DEFAULT_USER_ID.ToString());
+            var response = await Client.UnblockUser(userId);
 
-            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            response.StatusCode.Should().Be(expectedResult);
         }
 
-        [Test]
-        public async Task Block_AsAnonymous_Unauthorized()
-        {
-            var response = await Client.BlockUser(DEFAULT_USER_ID.ToString());
-
-            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        }
-
+       
         [Test]
         public async Task Block_User_HasBecomeBlocked()
         {
@@ -88,74 +63,6 @@ namespace UserWallet.Tests.ControllersTests.Admin
         }
 
         [Test]
-        public async Task Block_NonExistenUser_NotFound()
-        {
-            await LoginAsAdmin(Client);
-
-            var response = await Client.BlockUser(NON_EXISTENT_USER_ID.ToString());
-
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        }
-
-        [Test]
-        public async Task Block_NotIntUserId_NotFound()
-        {
-            await LoginAsAdmin(Client);
-
-            var response = await Client.BlockUser("asdfg");
-
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        }
-
-        [Test]
-        public async Task Unblock_AsAdmin_Success()
-        {
-            await LoginAsAdmin(Client);
-
-            var response = await Client.UnblockUser(DEFAULT_USER_ID.ToString());
-
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
-        }
-
-        [Test]
-        public async Task Unblock_AsUser_Forbidden()
-        {
-            await LoginAsUser(Client);
-
-            var response = await Client.UnblockUser(DEFAULT_USER_ID.ToString());
-
-            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
-        }
-
-        [Test]
-        public async Task Unblock_AsAnonymous_Unauthorized()
-        {
-            var response = await Client.UnblockUser(DEFAULT_USER_ID.ToString());
-
-            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        }
-
-        [Test]
-        public async Task Unblock_NonExistenUser_NotFound()
-        {
-            await LoginAsAdmin(Client);
-
-            var response = await Client.UnblockUser(NON_EXISTENT_USER_ID.ToString());
-
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        }
-
-        [Test]
-        public async Task Unblock_NotIntUserId_NotFound()
-        {
-            await LoginAsAdmin(Client);
-
-            var response = await Client.UnblockUser("asdfg"); ;
-
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        }
-
-        [Test]
         public async Task Unblock_User_HasBecomeUnblocked()
         {
             await LoginAsAdmin(Client);
@@ -168,6 +75,22 @@ namespace UserWallet.Tests.ControllersTests.Admin
             var user = users!.FirstOrDefault(u => u.Id == DEFAULT_USER_ID);
             user.Should().NotBeNull();
             user!.IsBlocked.Should().BeFalse();
+        }
+
+        private static IEnumerable<TestCaseData> AccessGetUsersData()
+        {
+            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, HttpStatusCode.OK);
+            yield return new TestCaseData(DEFAULT_USER_USERNAME, DEFAULT_USER_PASSWORD, HttpStatusCode.Forbidden);
+            yield return new TestCaseData(null, null, HttpStatusCode.Unauthorized);
+        }
+
+        private static IEnumerable<TestCaseData> BlockAndUnblockUserData()
+        {
+            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, DEFAULT_USER_ID.ToString(), HttpStatusCode.OK);
+            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, NON_EXISTENT_USER_ID.ToString(), HttpStatusCode.NotFound);
+            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, "asdafg", HttpStatusCode.NotFound);
+            yield return new TestCaseData(DEFAULT_USER_USERNAME, DEFAULT_USER_PASSWORD, DEFAULT_USER_ID.ToString(), HttpStatusCode.Forbidden);
+            yield return new TestCaseData(null, null, DEFAULT_USER_ID.ToString(), HttpStatusCode.Unauthorized);
         }
 
         private async Task<List<User>?> GetUsers()

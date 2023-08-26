@@ -4,33 +4,16 @@
     {
         private const int TEST_TRANSACTION_ID = 1;
         private const int TEST_TRANSACTION_COUNT = 1;
+        private const int NON_EXISTENT_TRANSACTION_ID = -1;
 
-        [Test]
-        public async Task GetTransactions_AsAdmin_Success()
+        [TestCaseSource(nameof(AccessGetTransactionsData))]
+        public async Task GetTransactions_DifferentUsers_CorrectAnswer(string? username, string? password, HttpStatusCode expectedResult)
         {
-            await LoginAsAdmin(Client);    
+            await Client.Login(username, password);
 
             var response = await Client.GetTransactionsResponse();
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
-        }
-
-        [Test]
-        public async Task GetTransactions_AsUser_Forbidden()
-        {
-            await LoginAsUser(Client);
-
-            var response = await Client.GetTransactionsResponse();
-
-            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
-        }
-
-        [Test]
-        public async Task GetTransactions_AsAnonymous_Unauthorized()
-        {
-            var response = await Client.GetTransactionsResponse();
-
-            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+            response.StatusCode.Should().Be(expectedResult);
         }
 
         [Test]
@@ -57,36 +40,15 @@
             transactions.Should().NotBeNull().And.BeEmpty();
         }
 
-        [Test]
-        public async Task ApproveTransaction_AsAdmin_Success()
+        [TestCaseSource(nameof(DecideTransactionData))]
+        public async Task ApproveTransaction_DifferentUsers_CorrectAnswer(string? username, string? password, string? transactionId, HttpStatusCode expectedResult)
         {
-            await LoginAsAdmin(Client);
+            await Client.Login(username, password);
             await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
 
-            var response = await Client.ApproveTransaction(TEST_TRANSACTION_ID.ToString());
+            var response = await Client.ApproveTransaction(transactionId);
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
-        }
-
-        [Test]
-        public async Task ApproveTransaction_AsUser_Forbidden()
-        {
-            await LoginAsUser(Client);
-            await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
-
-            var response = await Client.ApproveTransaction(TEST_TRANSACTION_ID.ToString());
-
-            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
-        }
-
-        [Test]
-        public async Task ApproveTransaction_AsAnonymous_Unauthorized()
-        {
-            await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
-
-            var response = await Client.ApproveTransaction(TEST_TRANSACTION_ID.ToString());
-
-            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+            response.StatusCode.Should().Be(expectedResult);
         }
 
         [Test]
@@ -102,26 +64,6 @@
             var transaction = transactions!.FirstOrDefault(u => u.Id == TEST_TRANSACTION_ID);
             transaction.Should().NotBeNull();
             transaction!.Status.Should().Be(DepositStatus.Approved);
-        }
-
-        [Test]
-        public async Task ApproveTransaction_NonExistenTransaction_NotFound()
-        {
-            await LoginAsAdmin(Client);
-
-            var response = await Client.ApproveTransaction(TEST_TRANSACTION_ID.ToString());
-
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        }
-
-        [Test]
-        public async Task ApproveTransaction_NotIntTxId_NotFound()
-        {
-            await LoginAsAdmin(Client);
-
-            var response = await Client.ApproveTransaction("asdfg");
-
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
         [Test]
@@ -170,56 +112,15 @@
             transaction!.Status.Should().Be(DepositStatus.Declined);
         }
 
-        [Test]
-        public async Task DeclineTransaction_AsAdmin_Success()
+        [TestCaseSource(nameof(DecideTransactionData))]
+        public async Task DeclineTransaction_DifferentUsers_CorrectAnswer(string? username, string? password, string? transactionId, HttpStatusCode expectedResult)
         {
-            await LoginAsAdmin(Client);
+            await Client.Login(username, password);
             await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
 
-            var response = await Client.DeclineTransaction(TEST_TRANSACTION_ID.ToString());
+            var response = await Client.DeclineTransaction(transactionId);
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
-        }
-
-        [Test]
-        public async Task DeclineTransaction_AsUser_Forbidden()
-        {
-            await LoginAsUser(Client);
-            await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
-
-            var response = await Client.DeclineTransaction(TEST_TRANSACTION_ID.ToString());
-
-            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
-        }
-
-        [Test]
-        public async Task DeclineTransaction_AsAnonymous_Unauthorized()
-        {
-            await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
-
-            var response = await Client.DeclineTransaction(TEST_TRANSACTION_ID.ToString());
-
-            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        }
-
-        [Test]
-        public async Task DeclineTransaction_NonExistenTransaction_NotFound()
-        {
-            await LoginAsAdmin(Client);
-
-            var response = await Client.DeclineTransaction(TEST_TRANSACTION_ID.ToString());
-
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        }
-
-        [Test]
-        public async Task DeclineTransaction_NotIntTxId_NotFound()
-        {
-            await LoginAsAdmin(Client);
-
-            var response = await Client.DeclineTransaction("adasf");
-
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            response.StatusCode.Should().Be(expectedResult);
         }
 
         [Test]
@@ -276,6 +177,23 @@
             var response = await Client.DeclineTransaction(TEST_TRANSACTION_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
+        private static IEnumerable<TestCaseData> AccessGetTransactionsData()
+        {
+            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, HttpStatusCode.OK);
+            yield return new TestCaseData(DEFAULT_USER_USERNAME, DEFAULT_USER_PASSWORD, HttpStatusCode.Forbidden);
+            yield return new TestCaseData(null, null, HttpStatusCode.Unauthorized);
+        }
+
+        private static IEnumerable<TestCaseData> DecideTransactionData()
+        {
+            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, TEST_TRANSACTION_ID.ToString(), HttpStatusCode.OK);
+            yield return new TestCaseData(DEFAULT_USER_USERNAME, DEFAULT_USER_PASSWORD, TEST_TRANSACTION_ID.ToString(), HttpStatusCode.Forbidden);
+            yield return new TestCaseData(null, null, TEST_TRANSACTION_ID.ToString(), HttpStatusCode.Unauthorized);
+            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, NON_EXISTENT_TRANSACTION_ID.ToString(), HttpStatusCode.NotFound);
+            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, "adasf", HttpStatusCode.NotFound);
+
         }
 
         private async Task CreateUserClientAndCreateDeposit(string currecnyId, decimal amount, string address)

@@ -1,4 +1,6 @@
 
+using UserWallet.Services.Services;
+
 namespace UserWallet
 {
     public partial class Program
@@ -56,6 +58,7 @@ namespace UserWallet
             services.AddWindowsService();
             services.AddHostedService<SeedDataFromJsonService>();
             services.AddScoped<IConvertToUsdService, ConvertToUsdService>();
+            services.AddScoped<ICurrencyService, CurrencyService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ITransactionService, TransactionService>();

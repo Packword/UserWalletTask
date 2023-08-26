@@ -9,8 +9,14 @@
             _db = db;
         }
 
-        public List<UserBalance>? GetUserBalances(int userId)
-            => _db.Users.Include(u => u.Balances).FirstOrDefault(u => u.Id == userId)?.Balances?.ToList();
+        public (bool Result, List<UserBalance>? Balances) GetUserBalances(int userId)
+        {
+            var user = _db.Users.FirstOrDefault(u => u.Id == userId);
+            if (user is null)
+                return (false, null);
+            else
+                return (true, _db.UserBalances.Where(b => b.UserId == userId).ToList());
+        }
 
         public void AddUserBalance(int userId, string currency, decimal amount)
         {

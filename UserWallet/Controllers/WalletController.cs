@@ -4,7 +4,7 @@
     [ApiController]
     public class WalletController : ControllerBase
     {
-        private readonly ExchangeRateGenerator _exchangeRateGenerator;
+        private readonly ICurrencyService _currencyService;
         private readonly IConvertToUsdService _convertToUsdService;
         private readonly IDepositFiatService _depositFiatService;
         private readonly IDepositCryptoService _depositCryptoService;
@@ -14,21 +14,21 @@
         private readonly List<Currency> currencies;
         private readonly HashSet<string> availableCurrencies = new();
 
-        public WalletController(ExchangeRateGenerator exchangeRateGenerator,
+        public WalletController(ICurrencyService currencyService,
                                 IConvertToUsdService convertToUsdService,
                                 IDepositFiatService depositFiatService,
                                 IDepositCryptoService depositCryptoService,
                                 ITransactionService transactionService,
                                 IUserBalanceService userBalanceService)
         {
-            _exchangeRateGenerator = exchangeRateGenerator;
+            _currencyService = currencyService;
             _convertToUsdService = convertToUsdService;
             _depositFiatService = depositFiatService;
             _depositCryptoService = depositCryptoService;
             _transactionService = transactionService;
             _userBalanceService = userBalanceService;
 
-            currencies = _exchangeRateGenerator.GetCurrencies();
+            currencies = _currencyService.GetCurrencies();
             availableCurrencies = currencies.Where(c => c.IsAvailable).Select(c => c.Id).ToHashSet();
         }
 
@@ -37,7 +37,7 @@
         public Dictionary<string, BalanceDTO>? GetCurrentUserBalances()
         {
             int id = HttpContext.GetCurrentUserId()!.Value;
-            var balances = _userBalanceService.GetUserBalances(id);
+            var balances = _userBalanceService.GetUserBalances(id).Balances;
             return ConvertToBalanceDTO(balances);
         }
 
@@ -48,10 +48,13 @@
 
         [HttpGet("{id:int}")]
         [Authorize(Roles = UsersRole.ADMIN)]
-        public Dictionary<string, BalanceDTO>? GetUserBalanceInUsdById(int id)
+        public IActionResult GetUserBalanceInUsdById(int id)
         {
-            var balances = _userBalanceService.GetUserBalances(id);
-            return ConvertToBalanceDTO(balances);
+            var (Result, Balances) = _userBalanceService.GetUserBalances(id);
+            if (!Result)
+                return NotFound();
+
+            return Ok(ConvertToBalanceDTO(Balances));
         }
 
         [HttpPut("deposit/{currencyId}")]
