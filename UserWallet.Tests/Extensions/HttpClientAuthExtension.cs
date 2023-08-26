@@ -14,5 +14,10 @@
             => await client.PostAsJsonAsync(
                 "/auth/sign-up",
                 new SignUpDTO(username, password));
+
+        public async static Task<HttpResponseMessage> ChangePassword(this HttpClient client, string? newPassword, string? oldPassword)
+            => await client.PatchAsJsonAsync(
+                "/auth/change-password",
+                new ChangeUserPasswordDTO { NewPassword = newPassword, OldPassword = oldPassword });
     }
 }

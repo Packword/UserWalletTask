@@ -10,7 +10,7 @@
         {
             await LoginAsAdmin(Client);    
 
-            var response = await Client.GetAsync("admin/wallet/tx");
+            var response = await Client.GetTransactionsResponse();
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -20,7 +20,7 @@
         {
             await LoginAsUser(Client);
 
-            var response = await Client.GetAsync("admin/wallet/tx");
+            var response = await Client.GetTransactionsResponse();
 
             response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         }
@@ -28,7 +28,7 @@
         [Test]
         public async Task GetTransactions_AsAnonymous_Unauthorized()
         {
-            var response = await Client.GetAsync("admin/wallet/tx");
+            var response = await Client.GetTransactionsResponse();
 
             response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         }
@@ -63,7 +63,7 @@
             await LoginAsAdmin(Client);
             await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
 
-            var response = await Client.ApproveTransaction(TEST_TRANSACTION_ID);
+            var response = await Client.ApproveTransaction(TEST_TRANSACTION_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -74,7 +74,7 @@
             await LoginAsUser(Client);
             await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
 
-            var response = await Client.ApproveTransaction(TEST_TRANSACTION_ID);
+            var response = await Client.ApproveTransaction(TEST_TRANSACTION_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         }
@@ -84,7 +84,7 @@
         {
             await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
 
-            var response = await Client.ApproveTransaction(TEST_TRANSACTION_ID);
+            var response = await Client.ApproveTransaction(TEST_TRANSACTION_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         }
@@ -95,7 +95,7 @@
             await LoginAsAdmin(Client);
             await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
 
-            await Client.ApproveTransaction(TEST_TRANSACTION_ID);
+            await Client.ApproveTransaction(TEST_TRANSACTION_ID.ToString());
             var transactions = await Client.GetTransactions();
 
             transactions.Should().NotBeNull().And.HaveCount(TEST_TRANSACTION_COUNT);
@@ -109,7 +109,7 @@
         {
             await LoginAsAdmin(Client);
 
-            var response = await Client.ApproveTransaction(TEST_TRANSACTION_ID);
+            var response = await Client.ApproveTransaction(TEST_TRANSACTION_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
@@ -119,7 +119,7 @@
         {
             await LoginAsAdmin(Client);
 
-            var response = await Client.PostAsJsonAsync($"admin/wallet/tx/approve/fasdg", "");
+            var response = await Client.ApproveTransaction("asdfg");
 
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
@@ -130,7 +130,7 @@
             await LoginAsAdmin(Client);
             await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
 
-            await Client.ApproveTransaction(TEST_TRANSACTION_ID);
+            await Client.ApproveTransaction(TEST_TRANSACTION_ID.ToString());
             var userBalances = await Client.GetUserBalance(DEFAULT_USER_ID);
 
             userBalances.Should().NotBeNull().And.ContainKey(CRYPTO_CURRENCY_ID);
@@ -142,9 +142,9 @@
         {
             await LoginAsAdmin(Client);
             await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
-            await Client.ApproveTransaction(TEST_TRANSACTION_ID);
+            await Client.ApproveTransaction(TEST_TRANSACTION_ID.ToString());
 
-            var response = await Client.ApproveTransaction(TEST_TRANSACTION_ID);
+            var response = await Client.ApproveTransaction(TEST_TRANSACTION_ID.ToString());
             var userBalances = await Client.GetUserBalance(DEFAULT_USER_ID);
 
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -158,9 +158,9 @@
         {
             await LoginAsAdmin(Client);
             await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
-            await Client.DeclineTransaction(TEST_TRANSACTION_ID);
+            await Client.DeclineTransaction(TEST_TRANSACTION_ID.ToString());
 
-            var response = await Client.ApproveTransaction(TEST_TRANSACTION_ID);
+            var response = await Client.ApproveTransaction(TEST_TRANSACTION_ID.ToString());
             var transactions = await Client.GetTransactions();
 
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -176,7 +176,7 @@
             await LoginAsAdmin(Client);
             await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
 
-            var response = await Client.DeclineTransaction(TEST_TRANSACTION_ID);
+            var response = await Client.DeclineTransaction(TEST_TRANSACTION_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -187,7 +187,7 @@
             await LoginAsUser(Client);
             await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
 
-            var response = await Client.DeclineTransaction(TEST_TRANSACTION_ID);
+            var response = await Client.DeclineTransaction(TEST_TRANSACTION_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         }
@@ -197,7 +197,7 @@
         {
             await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
 
-            var response = await Client.DeclineTransaction(TEST_TRANSACTION_ID);
+            var response = await Client.DeclineTransaction(TEST_TRANSACTION_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         }
@@ -207,7 +207,7 @@
         {
             await LoginAsAdmin(Client);
 
-            var response = await Client.DeclineTransaction(TEST_TRANSACTION_ID);
+            var response = await Client.DeclineTransaction(TEST_TRANSACTION_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
@@ -217,7 +217,7 @@
         {
             await LoginAsAdmin(Client);
 
-            var response = await Client.PostAsJsonAsync($"admin/wallet/tx/decline/fasdg", "");
+            var response = await Client.DeclineTransaction("adasf");
 
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
@@ -228,7 +228,7 @@
             await LoginAsAdmin(Client);
             await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
 
-            await Client.DeclineTransaction(TEST_TRANSACTION_ID);
+            await Client.DeclineTransaction(TEST_TRANSACTION_ID.ToString());
             var transactions = await Client.GetTransactions();
 
             transactions.Should().NotBeNull();
@@ -243,7 +243,7 @@
             await LoginAsAdmin(Client);
             await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
 
-            await Client.DeclineTransaction(TEST_TRANSACTION_ID);
+            await Client.DeclineTransaction(TEST_TRANSACTION_ID.ToString());
             var userBalances = await Client.GetUserBalance(DEFAULT_USER_ID);
 
             userBalances.Should().NotBeNull().And.NotContainKey(CRYPTO_CURRENCY_ID);
@@ -254,9 +254,9 @@
         {
             await LoginAsAdmin(Client);
             await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
-            await Client.ApproveTransaction(TEST_TRANSACTION_ID);
+            await Client.ApproveTransaction(TEST_TRANSACTION_ID.ToString());
 
-            var response = await Client.DeclineTransaction(TEST_TRANSACTION_ID);
+            var response = await Client.DeclineTransaction(TEST_TRANSACTION_ID.ToString());
             var transactions = await Client.GetTransactions();
 
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -271,9 +271,9 @@
         {
             await LoginAsAdmin(Client);
             await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
-            await Client.DeclineTransaction(TEST_TRANSACTION_ID);
+            await Client.DeclineTransaction(TEST_TRANSACTION_ID.ToString());
 
-            var response = await Client.DeclineTransaction(TEST_TRANSACTION_ID);
+            var response = await Client.DeclineTransaction(TEST_TRANSACTION_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }

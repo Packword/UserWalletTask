@@ -11,7 +11,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         {
             await LoginAsAdmin(Client);
 
-            var response = await Client.GetAsync("admin/users");
+            var response = await Client.GetUsers();
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -19,7 +19,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         [Test]
         public async Task GetUsers_Anonymous_Unauthorized()
         {
-            var response = await Client.GetAsync("admin/users");
+            var response = await Client.GetUsers();
 
             response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         }
@@ -29,7 +29,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         {
             await LoginAsUser(Client);
 
-            var response = await Client.GetAsync("admin/users");
+            var response = await Client.GetUsers();
 
             response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         }
@@ -50,7 +50,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         {
             await LoginAsAdmin(Client);
 
-            var response = await BlockUser(DEFAULT_USER_ID);
+            var response = await Client.BlockUser(DEFAULT_USER_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -60,7 +60,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         {
             await LoginAsUser(Client);
 
-            var response = await BlockUser(DEFAULT_USER_ID);
+            var response = await Client.BlockUser(DEFAULT_USER_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         }
@@ -68,7 +68,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         [Test]
         public async Task Block_AsAnonymous_Unauthorized()
         {
-            var response = await BlockUser(DEFAULT_USER_ID);
+            var response = await Client.BlockUser(DEFAULT_USER_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         }
@@ -78,7 +78,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         {
             await LoginAsAdmin(Client);
 
-            await BlockUser(DEFAULT_USER_ID);
+            await Client.BlockUser(DEFAULT_USER_ID.ToString());
             var users = await GetUsers();
 
             users.Should().NotBeNull();
@@ -92,7 +92,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         {
             await LoginAsAdmin(Client);
 
-            var response = await BlockUser(NON_EXISTENT_USER_ID);
+            var response = await Client.BlockUser(NON_EXISTENT_USER_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
@@ -102,7 +102,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         {
             await LoginAsAdmin(Client);
 
-            var response = await Client.PatchAsJsonAsync($"admin/users/block/asdfg", "");
+            var response = await Client.BlockUser("asdfg");
 
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
@@ -112,7 +112,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         {
             await LoginAsAdmin(Client);
 
-            var response = await UnblockUser(DEFAULT_USER_ID);
+            var response = await Client.UnblockUser(DEFAULT_USER_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -122,7 +122,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         {
             await LoginAsUser(Client);
 
-            var response = await UnblockUser(DEFAULT_USER_ID);
+            var response = await Client.UnblockUser(DEFAULT_USER_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         }
@@ -130,7 +130,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         [Test]
         public async Task Unblock_AsAnonymous_Unauthorized()
         {
-            var response = await UnblockUser(DEFAULT_USER_ID);
+            var response = await Client.UnblockUser(DEFAULT_USER_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         }
@@ -140,7 +140,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         {
             await LoginAsAdmin(Client);
 
-            var response = await UnblockUser(NON_EXISTENT_USER_ID);
+            var response = await Client.UnblockUser(NON_EXISTENT_USER_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
@@ -150,7 +150,7 @@ namespace UserWallet.Tests.ControllersTests.Admin
         {
             await LoginAsAdmin(Client);
 
-            var response = await Client.PatchAsJsonAsync($"admin/users/unblock/asdfg", "");
+            var response = await Client.UnblockUser("asdfg"); ;
 
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
@@ -159,9 +159,9 @@ namespace UserWallet.Tests.ControllersTests.Admin
         public async Task Unblock_User_HasBecomeUnblocked()
         {
             await LoginAsAdmin(Client);
-            await BlockUser(DEFAULT_USER_ID);
+            await Client.BlockUser(DEFAULT_USER_ID.ToString());
 
-            await UnblockUser(DEFAULT_USER_ID);
+            await Client.UnblockUser(DEFAULT_USER_ID.ToString());
             var users = await GetUsers();
 
             users.Should().NotBeNull();
@@ -170,15 +170,9 @@ namespace UserWallet.Tests.ControllersTests.Admin
             user!.IsBlocked.Should().BeFalse();
         }
 
-        private async Task<HttpResponseMessage> BlockUser(int userId)
-            => await Client.PatchAsJsonAsync($"admin/users/block/{userId}", "");
-
-        private async Task<HttpResponseMessage> UnblockUser(int userId)
-            => await Client.PatchAsJsonAsync($"admin/users/unblock/{userId}", "");
-
         private async Task<List<User>?> GetUsers()
         {
-            var response = await Client.GetAsync("admin/users");
+            var response = await Client.GetUsers();
             return await response.GetContentAsync<List<User>>();
         }
     }

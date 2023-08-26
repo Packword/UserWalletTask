@@ -5,7 +5,7 @@
         [Test]
         public async Task GetRates_AvailableCurrency_Success()
         {
-            var response = await Client.GetAsync("/rates");
+            var response = await Client.GetRates();
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -13,7 +13,7 @@
         [Test]
         public async Task GetRates_AvailableCurrency_MustContain()
         {
-            var response = await Client.GetAsync("/rates");
+            var response = await Client.GetRates();
             var rates = await response.GetContentAsync<CurrentRateDTO>();
 
             rates.Should().NotBeNull();

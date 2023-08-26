@@ -10,7 +10,7 @@
         {
             await LoginAsUser(Client);
 
-            var response = await Client.GetAsync("wallet/balance");
+            var response = await Client.GetCurrentUserBalanceResponse();
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -18,7 +18,7 @@
         [Test]
         public async Task GetCurrentUserBalance_AsAnonymous_Unauthorized()
         {
-            var response = await Client.GetAsync("wallet/balance");
+            var response = await Client.GetCurrentUserBalanceResponse();
 
             response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         }
@@ -28,7 +28,7 @@
         {
             await LoginAsAdmin(Client);
 
-            var response = await Client.GetAsync("wallet/balance");
+            var response = await Client.GetCurrentUserBalanceResponse();
 
             response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         }
@@ -61,7 +61,7 @@
         {
             await LoginAsUser(Client);
 
-            var response = await Client.GetAsync("wallet/tx");
+            var response = await Client.GetCurrentUserDepositsResponse();
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -71,7 +71,7 @@
         {
             await LoginAsAdmin(Client);
 
-            var response = await Client.GetAsync("wallet/tx");
+            var response = await Client.GetCurrentUserDepositsResponse();
 
             response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         }
@@ -79,7 +79,7 @@
         [Test]
         public async Task GetCurrentUserDeposits_AsAnonymous_Unauthorized()
         {
-            var response = await Client.GetAsync("wallet/tx");
+            var response = await Client.GetCurrentUserDepositsResponse();
 
             response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         }
@@ -127,7 +127,7 @@
         {
             await LoginAsAdmin(Client);
 
-            var response = await Client.GetAsync($"wallet/{DEFAULT_USER_ID}");
+            var response = await Client.GetUserBalanceResponse(DEFAULT_USER_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -137,7 +137,7 @@
         {
             await LoginAsUser(Client);
 
-            var response = await Client.GetAsync($"wallet/{DEFAULT_USER_ID}");
+            var response = await Client.GetUserBalanceResponse(DEFAULT_USER_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         }
@@ -145,7 +145,7 @@
         [Test]
         public async Task GetUserBalances_AsAnonymous_Unauthorized()
         {
-            var response = await Client.GetAsync($"wallet/{DEFAULT_USER_ID}");
+            var response = await Client.GetUserBalanceResponse(DEFAULT_USER_ID.ToString());
 
             response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         }
@@ -155,7 +155,7 @@
         {
             await CreateUserClientAndCreateCryptoDeposit();
             await LoginAsAdmin(Client);
-            await Client.ApproveTransaction(TEST_TRANSACTION_ID);
+            await Client.ApproveTransaction(TEST_TRANSACTION_ID.ToString());
 
             var userBalance = await Client.GetUserBalance(DEFAULT_USER_ID);
 
@@ -206,8 +206,7 @@
         {
             await LoginAsUser(Client);
 
-
-            await Client.PutAsJsonAsync($"/wallet/deposit/{currencyId}", deposit);
+            await Client.CreateDeposit(currencyId, deposit);
             var deposits = await Client.GetCurrentUserDeposits();
 
             deposits.Should().NotBeNull().And.HaveCount(1);
@@ -232,7 +231,7 @@
         {
             await LoginAsUser(Client);
 
-            var response = await Client.PutAsJsonAsync($"/wallet/deposit/{currencyId}", deposit);
+            var response = await Client.CreateDeposit(currencyId, deposit);
             var deposits = await Client.GetCurrentUserDeposits();
 
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -300,7 +299,7 @@
         {
             using var adminClient = Factory.CreateClient();
             await LoginAsAdmin(adminClient);
-            await adminClient.ApproveTransaction(id);
+            await adminClient.ApproveTransaction(id.ToString());
         }
 
         private async static Task<HttpResponseMessage> CreateCryptoDeposit(HttpClient client)

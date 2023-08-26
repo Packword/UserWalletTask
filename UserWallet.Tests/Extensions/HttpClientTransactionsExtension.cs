@@ -11,16 +11,7 @@
             return await response.GetContentAsync<List<Deposit>>();
         }
 
-        public async static Task<List<Deposit>?> GetTransactions(this HttpClient client)
-        {
-            var response = await client.GetAsync("admin/wallet/tx");
-            return await response.GetContentAsync<List<Deposit>>();
-        }
-
-        public async static Task<HttpResponseMessage> DeclineTransaction(this HttpClient client, int txId)
-            => await client.PostAsJsonAsync($"admin/wallet/tx/decline/{txId}", "");
-
-        public async static Task<HttpResponseMessage> ApproveTransaction(this HttpClient client, int txId)
-            => await client.PostAsJsonAsync($"admin/wallet/tx/approve/{txId}", "");
+        public async static Task<HttpResponseMessage> GetCurrentUserDepositsResponse(this HttpClient client)
+            => await client.GetAsync("wallet/tx");
     }
 }

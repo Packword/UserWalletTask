@@ -31,10 +31,7 @@ namespace UserWallet.Tests.ControllersTests.Auth
         {
             await Login(user);
 
-            var response = await Client.PatchAsJsonAsync(
-                "/auth/change-password", 
-                new ChangeUserPasswordDTO { NewPassword = "12345", OldPassword = oldPassword }
-            );
+            var response = await Client.ChangePassword("12345", oldPassword);
 
             response.StatusCode.Should().Be(exceptedResponse);
         }
@@ -44,10 +41,7 @@ namespace UserWallet.Tests.ControllersTests.Auth
         {
             await LoginAsUser(Client);
 
-            var response = await Client.PatchAsJsonAsync(
-                "/auth/change-password",
-                passwordDto
-            );
+            var response = await Client.ChangePassword(passwordDto?.NewPassword, passwordDto?.OldPassword);
 
             if (errorList is not null)
             {
@@ -56,7 +50,7 @@ namespace UserWallet.Tests.ControllersTests.Auth
                 foreach (var error in errorList)
                 {
                     errors.Should().ContainKey(error.Key);
-                    errors[error.Key].Should().Contain(error.Value);
+                    errors![error.Key].Should().Contain(error.Value);
                 }
             }
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -81,7 +75,8 @@ namespace UserWallet.Tests.ControllersTests.Auth
                                                {"NewPassword", "The NewPassword field is required."}
                                            });
             yield return new TestCaseData(null, new Dictionary<string, string>() {
-                                               {"", "A non-empty request body is required."}
+                                               {"NewPassword", "The NewPassword field is required."},
+                                               {"OldPassword", "The OldPassword field is required."}
                                            }); 
         }
 
@@ -91,10 +86,7 @@ namespace UserWallet.Tests.ControllersTests.Auth
             const string  NEW_PASSWORD = "12345";
 
             await LoginAsAdmin(Client);
-            await Client.PatchAsJsonAsync(
-                "/auth/change-password",
-                new ChangeUserPasswordDTO { NewPassword = NEW_PASSWORD, OldPassword = ADMIN_PASSWORD }
-            );
+            await Client.ChangePassword(NEW_PASSWORD, ADMIN_PASSWORD);
             await Client.Logout();
 
             var response = await Client.Login(ADMIN_USERNAME, NEW_PASSWORD);
@@ -175,7 +167,6 @@ namespace UserWallet.Tests.ControllersTests.Auth
             const string PASSWORD = "Test";
 
             await Client.SignUp(USERNAME, PASSWORD);
-
             var response = await Client.Login(USERNAME, PASSWORD);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
