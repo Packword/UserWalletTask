@@ -31,10 +31,10 @@
             Navigation.NavigateTo($"/transactions/{UserId}/{Currency}");
     }
 
-    public void ModalShow()
+    private void ModalShow()
         => showDepositModal = true;
 
-    public void HandleOnDepositCreated()
+    private void HandleOnDepositCreated()
         => showDepositModal = false;
 
 }
