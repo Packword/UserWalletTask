@@ -1,12 +1,11 @@
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-
 namespace UserWallet.Tests.ControllersTests.Auth
 {
     public class AuthTests : BaseControllerTest
     {
         private static (string Username, string Password) Admin = new(ADMIN_USERNAME, ADMIN_PASSWORD);
         private static (string Username, string Password) DefaultUser = new(DEFAULT_USER_USERNAME, DEFAULT_USER_PASSWORD);
+        private const string TEST_USERNAME = "ForTest";
+        private const string TEST_PASSWORD = "Test";
 
         [TestCaseSource(nameof(AccessLoginTestData))]
         public async Task Login_DifferentData_CorrectResponse((string Username, string Password)? user, HttpStatusCode exceptedResponse)
@@ -107,7 +106,7 @@ namespace UserWallet.Tests.ControllersTests.Auth
         [Test]
         public async Task SignUp_CorrectUser_Success()
         {
-            var response = await Client.SignUp("ForTest", "Test");
+            var response = await SignUpAsTestUser();
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -115,7 +114,7 @@ namespace UserWallet.Tests.ControllersTests.Auth
         [Test]
         public async Task SignUp_ExistingUser_BadRequest()
         {
-            var response = await Client.SignUp(ADMIN_USERNAME, "Test");
+            var response = await SignUpAsTestUser();
 
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
@@ -163,14 +162,15 @@ namespace UserWallet.Tests.ControllersTests.Auth
         [Test]
         public async Task SignUp_CorrectUser_SuccessLoginAsNewUser()
         {
-            const string USERNAME = "ForTest";
-            const string PASSWORD = "Test";
+            var responseSignUp = await SignUpAsTestUser();
+            var responseLogin = await Client.Login(TEST_USERNAME, TEST_PASSWORD);
 
-            await Client.SignUp(USERNAME, PASSWORD);
-            var response = await Client.Login(USERNAME, PASSWORD);
-
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            responseSignUp.StatusCode.Should().Be(HttpStatusCode.OK);
+            responseLogin.StatusCode.Should().Be(HttpStatusCode.OK);
         }
+
+        private async Task<HttpResponseMessage> SignUpAsTestUser()
+            => await Client.SignUp(TEST_USERNAME, TEST_PASSWORD);
 
         private async Task<HttpResponseMessage> Login((string Username, string Password)? user)
             => await Client.Login(user?.Username, user?.Password);
