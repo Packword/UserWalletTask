@@ -1,0 +1,13 @@
+﻿@inject IHttpClientFactory ClientFactory
+@inject UserStore UserStore
+
+<button class="btn btn-primary" @onclick="OnSignOut">Logout</button>
+
+@code {
+    private async Task OnSignOut()
+    {
+        var client = ClientFactory.CreateClient();
+        await client.PostAsJsonAsync("http://localhost:5140/auth/logout", "");
+        UserStore.CurrentUser = new ClaimsPrincipal();
+    }
+}
