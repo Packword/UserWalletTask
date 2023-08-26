@@ -4,10 +4,6 @@ namespace UserWallet.Tests.ControllersTests
 {
     public abstract class BaseControllerTest
     {
-        private const string WorkingDirectoryPath = "../../../../UserWallet";
-
-        private string initialDirectory;
-
         protected const string  DEFAULT_USER_USERNAME = "maxim";
         protected const string  DEFAULT_USER_PASSWORD = "123456";
         protected const string  DEFAULT_USER_ROLE = UsersRole.USER;
@@ -30,9 +26,6 @@ namespace UserWallet.Tests.ControllersTests
         [OneTimeSetUp]
         public virtual void OneTimeSetup()
         {
-            initialDirectory = Directory.GetCurrentDirectory();
-
-            Directory.SetCurrentDirectory(WorkingDirectoryPath);
             Factory = WebApplicationFactoryHelper.CreateFactoryWithInMemoryDb();
         }
 
@@ -89,7 +82,6 @@ namespace UserWallet.Tests.ControllersTests
         [OneTimeTearDown]
         public void OneTimeTearDown()
         {
-            Directory.SetCurrentDirectory(initialDirectory);
             Factory.Dispose();
         }
 

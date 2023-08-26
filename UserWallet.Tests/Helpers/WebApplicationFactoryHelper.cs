@@ -1,4 +1,7 @@
-﻿namespace UserWallet.Tests.Helpers
+﻿using Microsoft.Extensions.Hosting;
+using UserWallet.Services;
+
+namespace UserWallet.Tests.Helpers
 {
     public static class WebApplicationFactoryHelper
     {
@@ -12,6 +15,12 @@
                             {
                                 var descriptor = c.SingleOrDefault(
                                     d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
+
+                                if (descriptor != null)
+                                    c.Remove(descriptor);
+
+                                descriptor = c.SingleOrDefault(
+                                    d => d.ImplementationType == typeof(SeedDataFromJsonService));
 
                                 if (descriptor != null)
                                     c.Remove(descriptor);

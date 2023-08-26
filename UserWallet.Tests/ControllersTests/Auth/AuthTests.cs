@@ -1,3 +1,6 @@
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+
 namespace UserWallet.Tests.ControllersTests.Auth
 {
     public class AuthTests : BaseControllerTest
@@ -37,7 +40,7 @@ namespace UserWallet.Tests.ControllersTests.Auth
         }
 
         [TestCaseSource(nameof(ChangePasswordIncorrectData))]
-        public async Task ChangePassword_AsUserWithIncorrectData_BadRequest(ChangeUserPasswordDTO? passwordDto)
+        public async Task ChangePassword_IncorrectData_BadRequest(ChangeUserPasswordDTO? passwordDto, Dictionary<string, string>? errorList)
         {
             await LoginAsUser(Client);
 
@@ -46,16 +49,40 @@ namespace UserWallet.Tests.ControllersTests.Auth
                 passwordDto
             );
 
+            if (errorList is not null)
+            {
+                var errors = response.GetErrors();
+                errors.Should().NotBeNull().And.HaveCountGreaterThan(0);
+                foreach (var error in errorList)
+                {
+                    errors.Should().ContainKey(error.Key);
+                    errors[error.Key].Should().Contain(error.Value);
+                }
+            }
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
 
         private static IEnumerable<TestCaseData> ChangePasswordIncorrectData()
         {
-            yield return new TestCaseData( new ChangeUserPasswordDTO { NewPassword = "123", OldPassword = ADMIN_PASSWORD });
-            yield return new TestCaseData(new ChangeUserPasswordDTO { NewPassword = "12345", OldPassword = "1234567" });
-            yield return new TestCaseData( new ChangeUserPasswordDTO { NewPassword = "12345678901234567890", OldPassword = ADMIN_PASSWORD });
-            yield return new TestCaseData( new ChangeUserPasswordDTO { NewPassword = null, OldPassword = ADMIN_PASSWORD });
-            yield return new TestCaseData( null ); 
+            yield return new TestCaseData( new ChangeUserPasswordDTO { NewPassword = "123", OldPassword = ADMIN_PASSWORD },
+                                           new Dictionary<string, string>() {
+                                               {"NewPassword", "The field NewPassword must be a string with a minimum length of 4 and a maximum length of 8."}
+                                           });
+            yield return new TestCaseData( new ChangeUserPasswordDTO { NewPassword = "12345", OldPassword = "1234567" },
+                                           new Dictionary<string, string>() {
+                                               {"default", "Wrong old password"}
+                                           });
+            yield return new TestCaseData( new ChangeUserPasswordDTO { NewPassword = "12345678901234567890", OldPassword = ADMIN_PASSWORD },
+                                           new Dictionary<string, string>() {
+                                               {"NewPassword", "The field NewPassword must be a string with a minimum length of 4 and a maximum length of 8."}
+                                           });
+            yield return new TestCaseData( new ChangeUserPasswordDTO { NewPassword = null, OldPassword = ADMIN_PASSWORD },
+                                           new Dictionary<string, string>() {
+                                               {"NewPassword", "The NewPassword field is required."}
+                                           });
+            yield return new TestCaseData(null, new Dictionary<string, string>() {
+                                               {"", "A non-empty request body is required."}
+                                           }); 
         }
 
         [Test]

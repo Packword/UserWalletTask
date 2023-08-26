@@ -1,14 +1,18 @@
-﻿namespace UserWallet.Data
+﻿
+namespace UserWallet.Services
 {
-    public static class SeedDataFromJson
+    public class SeedDataFromJsonService : BackgroundService
     {
+        private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
         private const string CURRENCIES_JSON_PATH = "./../UserWallet.Data/Data/Currencies.json";
         private const string USERS_JSON_PATH = "./../UserWallet.Data/Data/Users.json";
-
-        public static void Initialize(IServiceProvider serviceProvider)
+        public SeedDataFromJsonService(IDbContextFactory<ApplicationDbContext> contextFactory)
         {
-            using var context = new ApplicationDbContext(serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
-            
+            _contextFactory = contextFactory;
+        }
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            using var context = _contextFactory.CreateDbContext();
             using (var fs = new FileStream(CURRENCIES_JSON_PATH, FileMode.Open))
                 MigrateCurrenciesFromJsonToDb(context, fs);
 
@@ -19,6 +23,7 @@
             }
 
             context.SaveChanges();
+            return Task.CompletedTask;
         }
 
         private static void MigrateUsersFromJsonToDb(ApplicationDbContext context, FileStream fs)
