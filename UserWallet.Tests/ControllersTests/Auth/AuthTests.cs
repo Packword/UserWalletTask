@@ -8,11 +8,11 @@ namespace UserWallet.Tests.ControllersTests.Auth
         private const string TEST_PASSWORD = "Test";
 
         [TestCaseSource(nameof(AccessLoginData))]
-        public async Task Login_DifferentData_CorrectResponse((string Username, string Password)? user, HttpStatusCode exceptedResponse)
+        public async Task<HttpStatusCode> Login_DifferentData_CorrectResponse((string Username, string Password)? user)
         {
             var response = await Login(user);
 
-            response.StatusCode.Should().Be(exceptedResponse);
+            return response.StatusCode;
         }
 
         [Test]
@@ -26,13 +26,13 @@ namespace UserWallet.Tests.ControllersTests.Auth
         }
 
         [TestCaseSource(nameof(AccessChangePasswordData))]
-        public async Task ChangePassword_CorrectData_CorrectResponse((string Username, string Password)? user, string oldPassword, HttpStatusCode exceptedResponse)
+        public async Task<HttpStatusCode> ChangePassword_CorrectData_CorrectResponse((string Username, string Password)? user, string oldPassword)
         {
             await Login(user);
 
             var response = await Client.ChangePassword(TEST_PASSWORD, oldPassword);
 
-            response.StatusCode.Should().Be(exceptedResponse);
+            return response.StatusCode;
         }
 
         [TestCaseSource(nameof(ChangePasswordIncorrectData))]
@@ -68,21 +68,21 @@ namespace UserWallet.Tests.ControllersTests.Auth
         }
 
         [TestCaseSource(nameof(AccessLogoutData))]
-        public async Task Logout_DifferentUsers_CorrectResponse((string Username, string Password)? user, HttpStatusCode exceptedResponse)
+        public async Task<HttpStatusCode> Logout_DifferentUsers_CorrectResponse((string Username, string Password)? user)
         {
             await Login(user);
 
             var response = await Client.Logout();
 
-            response.StatusCode.Should().Be(exceptedResponse);
+            return response.StatusCode;
         }
 
         [TestCaseSource(nameof(SignUpData))]
-        public async Task SignUp_DifferentUsers_CorrectAnswer(string? username, string password, HttpStatusCode expectedResult)
+        public async Task<HttpStatusCode> SignUp_DifferentUsers_CorrectAnswer(string? username, string password)
         {
             var response = await Client.SignUp(username, password);
 
-            response.StatusCode.Should().Be(expectedResult);
+            return response.StatusCode;
         }
 
         [Test]
@@ -121,36 +121,36 @@ namespace UserWallet.Tests.ControllersTests.Auth
 
         private static IEnumerable<TestCaseData> SignUpData()
         {
-            yield return new TestCaseData(null, null, HttpStatusCode.BadRequest);
-            yield return new TestCaseData("12345", null, HttpStatusCode.BadRequest);
-            yield return new TestCaseData(null, "12345", HttpStatusCode.BadRequest);
-            yield return new TestCaseData("", "", HttpStatusCode.BadRequest);
-            yield return new TestCaseData("123", "12345", HttpStatusCode.BadRequest);
-            yield return new TestCaseData("12345", "123", HttpStatusCode.BadRequest);
-            yield return new TestCaseData("12345678901234567890", "12345", HttpStatusCode.BadRequest);
-            yield return new TestCaseData(ADMIN_USERNAME, TEST_PASSWORD, HttpStatusCode.BadRequest);
-            yield return new TestCaseData(TEST_USERNAME, TEST_PASSWORD, HttpStatusCode.OK);
+            yield return new TestCaseData(null, null).Returns(HttpStatusCode.BadRequest);
+            yield return new TestCaseData("12345", null).Returns(HttpStatusCode.BadRequest);
+            yield return new TestCaseData(null, "12345").Returns(HttpStatusCode.BadRequest);
+            yield return new TestCaseData("", "").Returns(HttpStatusCode.BadRequest);
+            yield return new TestCaseData("123", "12345").Returns(HttpStatusCode.BadRequest);
+            yield return new TestCaseData("12345", "123").Returns(HttpStatusCode.BadRequest);
+            yield return new TestCaseData("12345678901234567890", "12345").Returns(HttpStatusCode.BadRequest);
+            yield return new TestCaseData(ADMIN_USERNAME, TEST_PASSWORD).Returns(HttpStatusCode.BadRequest);
+            yield return new TestCaseData(TEST_USERNAME, TEST_PASSWORD).Returns(HttpStatusCode.OK);
         }
 
         private static IEnumerable<TestCaseData> AccessLoginData()
         {
-            yield return new TestCaseData(Admin, HttpStatusCode.OK);
-            yield return new TestCaseData(DefaultUser, HttpStatusCode.OK);
-            yield return new TestCaseData(("Test", "Test"), HttpStatusCode.Unauthorized);
-            yield return new TestCaseData(null, HttpStatusCode.BadRequest);
+            yield return new TestCaseData(Admin).Returns(HttpStatusCode.OK);
+            yield return new TestCaseData(DefaultUser).Returns(HttpStatusCode.OK);
+            yield return new TestCaseData(("Test", "Test")).Returns(HttpStatusCode.Unauthorized);
+            yield return new TestCaseData(null).Returns(HttpStatusCode.BadRequest);
         }
         private static IEnumerable<TestCaseData> AccessChangePasswordData()
         {
-            yield return new TestCaseData(Admin, ADMIN_PASSWORD, HttpStatusCode.OK);
-            yield return new TestCaseData(DefaultUser, DEFAULT_USER_PASSWORD, HttpStatusCode.OK);
-            yield return new TestCaseData(("Test", "Test"), "1234", HttpStatusCode.Unauthorized);
+            yield return new TestCaseData(Admin, ADMIN_PASSWORD).Returns(HttpStatusCode.OK);
+            yield return new TestCaseData(DefaultUser, DEFAULT_USER_PASSWORD).Returns(HttpStatusCode.OK);
+            yield return new TestCaseData(("Test", "Test"), "1234").Returns(HttpStatusCode.Unauthorized);
         }
 
         private static IEnumerable<TestCaseData> AccessLogoutData()
         {
-            yield return new TestCaseData(Admin, HttpStatusCode.OK);
-            yield return new TestCaseData(DefaultUser, HttpStatusCode.OK);
-            yield return new TestCaseData(("Test", "Test"), HttpStatusCode.Unauthorized);
+            yield return new TestCaseData(Admin).Returns(HttpStatusCode.OK);
+            yield return new TestCaseData(DefaultUser).Returns(HttpStatusCode.OK);
+            yield return new TestCaseData(("Test", "Test")).Returns(HttpStatusCode.Unauthorized);
         }
 
         private async Task<HttpResponseMessage> SignUpAsTestUser()

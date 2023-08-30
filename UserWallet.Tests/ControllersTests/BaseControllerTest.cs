@@ -1,4 +1,6 @@
 ﻿using NUnit.Framework.Internal;
+using System.Configuration;
+using UserWallet.OptionsModels;
 
 namespace UserWallet.Tests.ControllersTests
 {
@@ -19,6 +21,7 @@ namespace UserWallet.Tests.ControllersTests
         protected const string  FIAT_CARDHOLDER = "1234567890123456";
         protected const string  FIAT_CARDNUMBER = "1234567890123456";
         protected const decimal DEFAULT_DEPOSIT_AMOUNT = 50;
+        protected readonly TimeSpan EXCHANGE_UPDATE_INTERVAL = TimeSpan.FromSeconds(1);
 
         protected WebApplicationFactory<Program> Factory { get; set; }
         protected HttpClient Client { get; set; }
@@ -26,14 +29,13 @@ namespace UserWallet.Tests.ControllersTests
         [OneTimeSetUp]
         public virtual void OneTimeSetup()
         {
-            Factory = WebApplicationFactoryHelper.CreateFactoryWithInMemoryDb();
+            Factory = WebApplicationFactoryHelper.CreateFactoryWithInMemoryDb(EXCHANGE_UPDATE_INTERVAL);
         }
 
         [SetUp]
         public void Setup()
         {
-            Client = Factory.CreateClient(); ;
-
+            Client = Factory.CreateClient();
             var sp = Factory.Services;
             using var scope = sp.CreateScope();
             var scopedServices = scope.ServiceProvider;

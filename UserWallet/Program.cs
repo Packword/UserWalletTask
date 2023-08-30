@@ -55,7 +55,6 @@ namespace UserWallet
                };
            });
             services.AddAuthorization();
-            services.AddWindowsService();
             services.AddHostedService<SeedDataFromJsonService>();
             services.AddScoped<IConvertToUsdService, ConvertToUsdService>();
             services.AddScoped<ICurrencyService, CurrencyService>();

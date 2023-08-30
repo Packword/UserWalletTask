@@ -7,13 +7,13 @@
         private const int NON_EXISTENT_TRANSACTION_ID = -1;
 
         [TestCaseSource(nameof(AccessGetTransactionsData))]
-        public async Task GetTransactions_DifferentUsers_CorrectAnswer(string? username, string? password, HttpStatusCode expectedResult)
+        public async Task<HttpStatusCode> GetTransactions_DifferentUsers_CorrectAnswer(string? username, string? password)
         {
             await Client.Login(username, password);
 
             var response = await Client.GetTransactionsResponse();
 
-            response.StatusCode.Should().Be(expectedResult);
+            return response.StatusCode;
         }
 
         [Test]
@@ -41,14 +41,14 @@
         }
 
         [TestCaseSource(nameof(DecideTransactionData))]
-        public async Task ApproveTransaction_DifferentUsers_CorrectAnswer(string? username, string? password, string? transactionId, HttpStatusCode expectedResult)
+        public async Task<HttpStatusCode> ApproveTransaction_DifferentUsers_CorrectAnswer(string? username, string? password, string? transactionId)
         {
             await Client.Login(username, password);
             await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
 
             var response = await Client.ApproveTransaction(transactionId);
 
-            response.StatusCode.Should().Be(expectedResult);
+            return response.StatusCode;
         }
 
         [Test]
@@ -113,14 +113,14 @@
         }
 
         [TestCaseSource(nameof(DecideTransactionData))]
-        public async Task DeclineTransaction_DifferentUsers_CorrectAnswer(string? username, string? password, string? transactionId, HttpStatusCode expectedResult)
+        public async Task<HttpStatusCode> DeclineTransaction_DifferentUsers_CorrectAnswer(string? username, string? password, string? transactionId)
         {
             await Client.Login(username, password);
             await CreateUserClientAndCreateDeposit(CRYPTO_CURRENCY_ID, DEFAULT_DEPOSIT_AMOUNT, CRYPTO_ADDRESS);
 
             var response = await Client.DeclineTransaction(transactionId);
 
-            response.StatusCode.Should().Be(expectedResult);
+            return response.StatusCode;
         }
 
         [Test]
@@ -181,18 +181,18 @@
 
         private static IEnumerable<TestCaseData> AccessGetTransactionsData()
         {
-            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, HttpStatusCode.OK);
-            yield return new TestCaseData(DEFAULT_USER_USERNAME, DEFAULT_USER_PASSWORD, HttpStatusCode.Forbidden);
-            yield return new TestCaseData(null, null, HttpStatusCode.Unauthorized);
+            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD).Returns(HttpStatusCode.OK);
+            yield return new TestCaseData(DEFAULT_USER_USERNAME, DEFAULT_USER_PASSWORD).Returns(HttpStatusCode.Forbidden);
+            yield return new TestCaseData(null, null).Returns(HttpStatusCode.Unauthorized);
         }
 
         private static IEnumerable<TestCaseData> DecideTransactionData()
         {
-            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, TEST_TRANSACTION_ID.ToString(), HttpStatusCode.OK);
-            yield return new TestCaseData(DEFAULT_USER_USERNAME, DEFAULT_USER_PASSWORD, TEST_TRANSACTION_ID.ToString(), HttpStatusCode.Forbidden);
-            yield return new TestCaseData(null, null, TEST_TRANSACTION_ID.ToString(), HttpStatusCode.Unauthorized);
-            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, NON_EXISTENT_TRANSACTION_ID.ToString(), HttpStatusCode.NotFound);
-            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, "adasf", HttpStatusCode.NotFound);
+            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, TEST_TRANSACTION_ID.ToString()).Returns(HttpStatusCode.OK);
+            yield return new TestCaseData(DEFAULT_USER_USERNAME, DEFAULT_USER_PASSWORD, TEST_TRANSACTION_ID.ToString()).Returns(HttpStatusCode.Forbidden);
+            yield return new TestCaseData(null, null, TEST_TRANSACTION_ID.ToString()).Returns(HttpStatusCode.Unauthorized);
+            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, NON_EXISTENT_TRANSACTION_ID.ToString()).Returns(HttpStatusCode.NotFound);
+            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, "adasf").Returns(HttpStatusCode.NotFound);
 
         }
 

@@ -1,11 +1,12 @@
 ﻿using Microsoft.Extensions.Hosting;
+using UserWallet.OptionsModels;
 using UserWallet.Services;
 
 namespace UserWallet.Tests.Helpers
 {
     public static class WebApplicationFactoryHelper
     {
-        public static WebApplicationFactory<Program> CreateFactoryWithInMemoryDb()
+        public static WebApplicationFactory<Program> CreateFactoryWithInMemoryDb(TimeSpan updateInterval)
         {
             return new WebApplicationFactory<Program>().WithWebHostBuilder(
                     b =>
@@ -13,6 +14,11 @@ namespace UserWallet.Tests.Helpers
                         b.ConfigureServices(
                             c =>
                             {
+                                c.Configure<ExchangeRateGeneratorOptions>(options =>
+                                {
+                                    options.UpdateInterval = updateInterval;
+                                });
+
                                 var descriptor = c.SingleOrDefault(
                                     d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
 

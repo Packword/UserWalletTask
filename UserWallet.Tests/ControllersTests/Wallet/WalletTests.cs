@@ -10,13 +10,13 @@
 
 
         [TestCaseSource(nameof(AccessCurrentUserData))]
-        public async Task GetCurrentUserBalance_DifferentUsers_CorrectAnswer(string? username, string? password, HttpStatusCode expectedResult)
+        public async Task<HttpStatusCode> GetCurrentUserBalance_DifferentUsers_CorrectAnswer(string? username, string? password)
         {
             await Client.Login(username, password);
 
             var response = await Client.GetCurrentUserBalanceResponse();
 
-            response.StatusCode.Should().Be(expectedResult);
+            return response.StatusCode;
         }
 
         [Test]
@@ -32,13 +32,10 @@
             var userBalanceAfter = await Client.GetCurrentUserBalance();
 
             userBalanceAfter.Should().NotBeNull().And.ContainKey(CRYPTO_CURRENCY_ID);
-            if (userBalanceBefore is not null && userBalanceBefore.ContainsKey(CRYPTO_CURRENCY_ID))
-            {
-                var difference = userBalanceAfter![CRYPTO_CURRENCY_ID].Amount - userBalanceBefore![CRYPTO_CURRENCY_ID].Amount;
-                difference.Should().Be(DEFAULT_DEPOSIT_AMOUNT);
-            }
-            else
-                userBalanceAfter![CRYPTO_CURRENCY_ID].Amount.Should().Be(DEFAULT_DEPOSIT_AMOUNT);
+            var difference = userBalanceAfter![CRYPTO_CURRENCY_ID].Amount - (userBalanceBefore!.ContainsKey(CRYPTO_CURRENCY_ID) ?
+                                                                             userBalanceBefore[CRYPTO_CURRENCY_ID].Amount :
+                                                                             0);
+            difference.Should().Be(DEFAULT_DEPOSIT_AMOUNT);
         }
 
         [Test]
@@ -52,13 +49,13 @@
         }
 
         [TestCaseSource(nameof(AccessCurrentUserData))]
-        public async Task GetCurrentUserDeposits_DifferentUsers_CorrectAnswer(string? username, string? password, HttpStatusCode expectedResult)
+        public async Task<HttpStatusCode> GetCurrentUserDeposits_DifferentUsers_CorrectAnswer(string? username, string? password)
         {
             await Client.Login(username, password);
 
             var response = await Client.GetCurrentUserDepositsResponse();
 
-            response.StatusCode.Should().Be(expectedResult);
+            return response.StatusCode;
         }
 
         [Test]
@@ -94,21 +91,21 @@
             await secondClient.Login(TEST_USERNAME, TEST_PASSWORD);
             await CreateCryptoDeposit(secondClient);
 
-            var depositsEmpty = await Client.GetCurrentUserDeposits();
-            var depositsNotEmpty = await secondClient.GetCurrentUserDeposits();
+            var currentUserDeposits = await Client.GetCurrentUserDeposits();
+            var otherUserDeposits = await secondClient.GetCurrentUserDeposits();
 
-            depositsEmpty.Should().NotBeNull().And.BeEmpty();
-            depositsNotEmpty.Should().NotBeNull().And.HaveCount(1);
+            currentUserDeposits.Should().NotBeNull().And.BeEmpty();
+            otherUserDeposits.Should().NotBeNull().And.HaveCount(1);
         }
 
         [TestCaseSource(nameof(AccessGetUserBalancesData))]
-        public async Task GetUserBalances_DifferentUsers_CorrectAnswer(string? username, string? password, string? userId, HttpStatusCode expectedResult)
+        public async Task<HttpStatusCode> GetUserBalances_DifferentUsers_CorrectAnswer(string? username, string? password, string? userId)
         {
             await Client.Login(username, password);
 
             var response = await Client.GetUserBalanceResponse(userId);
 
-            response.StatusCode.Should().Be(expectedResult);
+            return response.StatusCode;
         }
 
         [Test]
@@ -137,13 +134,13 @@
         }
 
         [TestCaseSource(nameof(AccessCurrentUserData))]
-        public async Task GetUserBalances_DifferentUsers_CorrectAnswer(string? username, string? password, HttpStatusCode expectedResult)
+        public async Task<HttpStatusCode> GetUserBalances_DifferentUsers_CorrectAnswer(string? username, string? password)
         {
             await Client.Login(username, password);
 
             var response = await CreateCryptoDeposit(Client);
 
-            response.StatusCode.Should().Be(expectedResult);
+            return response.StatusCode;
         }
 
         [TestCaseSource(nameof(CreateDepositCorrectData))]
@@ -175,18 +172,18 @@
 
         private static IEnumerable<TestCaseData> AccessCurrentUserData()
         {
-            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, HttpStatusCode.Forbidden);
-            yield return new TestCaseData(DEFAULT_USER_USERNAME, DEFAULT_USER_PASSWORD, HttpStatusCode.OK);
-            yield return new TestCaseData(null, null, HttpStatusCode.Unauthorized);
+            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD).Returns(HttpStatusCode.Forbidden);
+            yield return new TestCaseData(DEFAULT_USER_USERNAME, DEFAULT_USER_PASSWORD).Returns(HttpStatusCode.OK);
+            yield return new TestCaseData(null, null).Returns(HttpStatusCode.Unauthorized);
         }
 
         private static IEnumerable<TestCaseData> AccessGetUserBalancesData()
         {
-            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, DEFAULT_USER_ID.ToString(), HttpStatusCode.OK);
-            yield return new TestCaseData(DEFAULT_USER_USERNAME, DEFAULT_USER_PASSWORD, DEFAULT_USER_ID.ToString(), HttpStatusCode.Forbidden);
-            yield return new TestCaseData(null, null, DEFAULT_USER_ID.ToString(), HttpStatusCode.Unauthorized);
-            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD,NON_EXISTENT_USER_ID.ToString(), HttpStatusCode.NotFound);
-            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, "asdfg", HttpStatusCode.NotFound);
+            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, DEFAULT_USER_ID.ToString()).Returns(HttpStatusCode.OK);
+            yield return new TestCaseData(DEFAULT_USER_USERNAME, DEFAULT_USER_PASSWORD, DEFAULT_USER_ID.ToString()).Returns(HttpStatusCode.Forbidden);
+            yield return new TestCaseData(null, null, DEFAULT_USER_ID.ToString()).Returns(HttpStatusCode.Unauthorized);
+            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, NON_EXISTENT_USER_ID.ToString()).Returns(HttpStatusCode.NotFound);
+            yield return new TestCaseData(ADMIN_USERNAME, ADMIN_PASSWORD, "asdfg").Returns(HttpStatusCode.NotFound);
         }
 
         private static IEnumerable<TestCaseData> CreateDepositCorrectData()

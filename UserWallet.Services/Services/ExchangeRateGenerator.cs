@@ -7,9 +7,11 @@ namespace UserWallet.Services
         private readonly IOptionsMonitor<ExchangeRateGeneratorOptions> _config;
         private readonly IServiceProvider _serviceProvider;
         private readonly Random rnd = new();
-        private readonly Dictionary<string, decimal> rates = new();
+        private Task? _task;
+        private CancellationTokenSource _cts = new();
 
         private List<Currency>? currencies;
+        private Dictionary<string, decimal> rates = new();
 
         public ExchangeRateGenerator(IOptionsMonitor<ExchangeRateGeneratorOptions> config, IServiceProvider serviceProvider)
         {
@@ -18,59 +20,70 @@ namespace UserWallet.Services
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            UpdateRatesAsync(cancellationToken);
+            _cts = new CancellationTokenSource();
+            _task = UpdateRatesAsync(_cts.Token);
             return Task.CompletedTask;
         }
 
-        private void InitRates()
+        private async Task UpdateRatesAsync(CancellationToken cancellationToken)
         {
-            if (currencies is not null)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                foreach (var currency in currencies)
+                try
                 {
-                    rates.Add(currency.Id, rnd.Next(80, 120));
+                    UpdateRatesIfNeeded();
+                    if (rates.Keys is { Count: > 0 } keys)
+                    {
+                        foreach (var key in keys)
+                        {
+                            rates[key] *= 1 + 0.05m * rnd.Next(-1, 2);
+                        }
+                    }
+                    await Task.Delay(_config.CurrentValue.UpdateInterval, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
                 }
             }
         }
 
-        private void InitCurrencies()
+        public Dictionary<string, decimal> GetCurrentRates()
+        {
+            UpdateRatesIfNeeded();
+            return rates;
+        }
+
+        private void UpdateRatesIfNeeded()
+        {
+            UpdateCurrencies();
+            if(currencies is not null && rates.Count != currencies.Count)
+                UpdateRates();
+        }
+
+        private void UpdateCurrencies()
         {
             using var scope = _serviceProvider.CreateScope();
             var currencyService = scope.ServiceProvider.GetRequiredService<ICurrencyService>();
             currencies = currencyService.GetCurrencies();
         }
 
-        private async Task UpdateRatesAsync(CancellationToken stoppingToken)
+        private void UpdateRates()
         {
-            while (!stoppingToken.IsCancellationRequested)
+            var currenciesIds = currencies!.Select(x => x.Id);
+            rates = rates.Where(r => currenciesIds.Contains(r.Key)).ToDictionary(k => k.Key, v => v.Value);
+            foreach (var currency in currenciesIds)
             {
-                if (rates.Keys.Count is 0)
-                {
-                    InitCurrencies();
-                    InitRates();
-                }
-                else
-                {
-                    foreach (string key in rates.Keys)
-                    {
-                        rates[key] *= 1 + 0.05m * rnd.Next(-1, 2);
-                    }
-                }
-                await Task.Delay(_config.CurrentValue.UpdateInterval, stoppingToken);
+                if(!rates.ContainsKey(currency))
+                    rates.Add(currency, rnd.Next(80, 120));
             }
         }
 
-        public Dictionary<string, decimal> GetCurrentRates()
-        {
-            if(rates.Count is 0)
-            {
-                InitCurrencies();
-                InitRates();
-            }
-            return rates;
-        }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-            => Task.CompletedTask;
+        public async Task StopAsync(CancellationToken cancellationToken)
+        { 
+            _cts.Cancel();
+            await (_task ?? Task.CompletedTask);
+        }
     }
 }
