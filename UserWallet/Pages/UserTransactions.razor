@@ -1,6 +1,6 @@
 ﻿@page "/transactions/{userId:int}"
 
-@inject ExchangeRateGenerator ExchangeRateGenerator
+@inject ICurrencyService CurrencyService
 
 @attribute [Authorize(Roles = UsersRole.ADMIN)]
 
@@ -23,6 +23,6 @@
         base.OnInitialized();
 
         usersId = new List<int>() { UserId };
-        currenciesId = ExchangeRateGenerator.GetCurrencies().Select(c => c.Id).ToList();
+        currenciesId = CurrencyService.GetCurrencies()?.Select(c => c.Id).ToList();
     }
 }
