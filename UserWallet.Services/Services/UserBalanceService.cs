@@ -12,10 +12,10 @@
         public (bool Result, List<UserBalance>? Balances) GetUserBalances(int userId)
         {
             var user = _db.Users.FirstOrDefault(u => u.Id == userId);
-            if (user is not null)
-                return (true, _db.UserBalances.Where(b => b.UserId == userId).ToList());
+            if (user is null)
+                return (false, null);
 
-            return (false, null);
+            return (true, _db.UserBalances.Where(b => b.UserId == userId).ToList());
         }
 
         public void AddUserBalance(int userId, string currency, decimal amount)
