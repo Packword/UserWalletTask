@@ -26,5 +26,13 @@
         public ICollection<UserBalance>? Balances { get; set; }
 
         public ICollection<Deposit>? Deposits { get; set; }
+
+        public User(string username, string password, string role, bool isBlocked)
+        {
+            Username = username;
+            Password = password;
+            Role = role;
+            IsBlocked = isBlocked;
+        }
     }
 }

@@ -37,13 +37,7 @@
             if (_db.Users.FirstOrDefault(u => u.Username == userName) is not null)
                 return false;
 
-            User user = new User()
-            {
-                Username = userName,
-                Password = password,
-                IsBlocked = false,
-                Role = UsersRole.USER
-            };
+            User user = new(userName, password, UsersRole.USER, false);
 
             _db.Users.Add(user);
             _db.SaveChanges();

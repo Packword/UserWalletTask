@@ -1,14 +1,18 @@
-﻿namespace UserWallet.Data
+﻿
+namespace UserWallet.Services
 {
-    public static class SeedDataFromJson
+    public class SeedDataFromJsonService : BackgroundService
     {
+        private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
         private const string CURRENCIES_JSON_PATH = "./../UserWallet.Data/Data/Currencies.json";
         private const string USERS_JSON_PATH = "./../UserWallet.Data/Data/Users.json";
-
-        public static void Initialize(IServiceProvider serviceProvider)
+        public SeedDataFromJsonService(IDbContextFactory<ApplicationDbContext> contextFactory)
         {
-            using var context = new ApplicationDbContext(serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
-            
+            _contextFactory = contextFactory;
+        }
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            using var context = _contextFactory.CreateDbContext();
             using (var fs = new FileStream(CURRENCIES_JSON_PATH, FileMode.Open))
                 MigrateCurrenciesFromJsonToDb(context, fs);
 
@@ -19,33 +23,29 @@
             }
 
             context.SaveChanges();
+            return Task.CompletedTask;
         }
 
         private static void MigrateUsersFromJsonToDb(ApplicationDbContext context, FileStream fs)
         {
             var tmpUsers = JsonSerializer.Deserialize<List<TmpUser>>(fs)!;
             foreach (var tmpUser in tmpUsers)
+            {
                 AddUserToDb(context, tmpUser);
+            }
         }
 
         private static void AddUserToDb(ApplicationDbContext context, TmpUser tmpUser)
         {
-            User user = new User
-            {
-                Username = tmpUser.Username,
-                Password = tmpUser.Password,
-                Role = tmpUser.Role
-            };
+            User user = new(tmpUser.Username, tmpUser.Password, tmpUser.Role, false);
             FillUserBalances(user, tmpUser);
             context.Users.Add(user);
         }
 
         private static void FillUserBalances(User user, TmpUser tmpUser)
-        {
-            user.Balances = tmpUser.Balances
+            => user.Balances = tmpUser.Balances
                                    .Select(balance => new UserBalance { CurrencyId = balance.Key, Amount = balance.Value })
                                    .ToList();
-        }
 
         private static void MigrateCurrenciesFromJsonToDb(ApplicationDbContext context, FileStream fs)
         {
@@ -53,7 +53,9 @@
             var oldCurrencies = context.Currencies.ToDictionary(c => c.Id);
 
             foreach (var currId in oldCurrencies.Keys)
+            {
                 oldCurrencies[currId].IsAvailable = false;
+            }
 
             foreach (var tmpCurr in tmpCurrencies)
             {
@@ -67,27 +69,25 @@
         }
 
         private static void AddNewCurrencyToDb(ApplicationDbContext context, TmpCurrency tmpCurr)
-        {
-            context.Currencies.Add(new Currency
+            => context.Currencies.Add(new()
             {
                 Id = tmpCurr.Id,
                 Type = Enum.Parse<CurrencyType>(tmpCurr.Type),
                 IsAvailable = true
             });
-        }
 
         private class TmpUser
         {
             public string Username { get; set; } = null!;
             public string Password { get; set; } = null!;
             public string Role { get; set; } = null!;
-            public Dictionary<string, decimal> Balances { get; set; } = new Dictionary<string, decimal>();
+            public Dictionary<string, decimal> Balances { get; set; } = new();
         }
 
         private class TmpCurrency
         {
             public string Id { get; set; } = null!;
-            public string Type { get; set; }
+            public string Type { get; set; } = null!;
         }
     }
 }

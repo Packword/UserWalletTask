@@ -4,7 +4,7 @@
     [ApiController]
     public class WalletController : ControllerBase
     {
-        private readonly ExchangeRateGenerator _exchangeRateGenerator;
+        private readonly ICurrencyService _currencyService;
         private readonly IConvertToUsdService _convertToUsdService;
         private readonly IDepositFiatService _depositFiatService;
         private readonly IDepositCryptoService _depositCryptoService;
@@ -12,23 +12,23 @@
         private readonly IUserBalanceService _userBalanceService;
 
         private readonly List<Currency> currencies;
-        private HashSet<string> availableCurrencies = new HashSet<string>();
+        private readonly HashSet<string> availableCurrencies = new();
 
-        public WalletController(ExchangeRateGenerator exchangeRateGenerator,
+        public WalletController(ICurrencyService currencyService,
                                 IConvertToUsdService convertToUsdService,
                                 IDepositFiatService depositFiatService,
                                 IDepositCryptoService depositCryptoService,
                                 ITransactionService transactionService,
                                 IUserBalanceService userBalanceService)
         {
-            _exchangeRateGenerator = exchangeRateGenerator;
+            _currencyService = currencyService;
             _convertToUsdService = convertToUsdService;
             _depositFiatService = depositFiatService;
             _depositCryptoService = depositCryptoService;
             _transactionService = transactionService;
             _userBalanceService = userBalanceService;
 
-            currencies = _exchangeRateGenerator.GetCurrencies();
+            currencies = _currencyService.GetCurrencies();
             availableCurrencies = currencies.Where(c => c.IsAvailable).Select(c => c.Id).ToHashSet();
         }
 
@@ -36,25 +36,28 @@
         [Authorize(Roles = UsersRole.USER)]
         public Dictionary<string, BalanceDTO>? GetCurrentUserBalances()
         {
-            int id = HttpContext.GetCurrentUserId();
-            var balances = _userBalanceService.GetUserBalances(id);
+            int id = HttpContext.GetCurrentUserId()!.Value;
+            var balances = _userBalanceService.GetUserBalances(id).Balances;
             return ConvertToBalanceDTO(balances);
         }
 
         [HttpGet("tx")]
         [Authorize(Roles = UsersRole.USER)]
         public List<Deposit>? GetUserTransactions()
-            => _transactionService.GetUserDeposits(HttpContext.GetCurrentUserId());
+            => _transactionService.GetUserDeposits(HttpContext.GetCurrentUserId()!.Value);
 
         [HttpGet("{id:int}")]
         [Authorize(Roles = UsersRole.ADMIN)]
-        public Dictionary<string, BalanceDTO>? GetUserBalanceInUsdById(int id)
+        public IActionResult GetUserBalanceInUsdById(int id)
         {
-            var balances = _userBalanceService.GetUserBalances(id);
-            return ConvertToBalanceDTO(balances);
+            var (Result, Balances) = _userBalanceService.GetUserBalances(id);
+            if (!Result)
+                return NotFound();
+
+            return Ok(ConvertToBalanceDTO(Balances));
         }
 
-        [HttpPut("deposit/{currency}")]
+        [HttpPut("deposit/{currencyId}")]
         [Authorize(Roles = UsersRole.USER)]
         public IActionResult CreateDeposit(string currencyId, [FromBody] DepositDTO depositDTO)
         {
@@ -65,21 +68,13 @@
                 return BadRequest("Unavailable currency");
 
             Currency currency = currencies.First(c => c.Id == currencyId);
-            int userId = HttpContext.GetCurrentUserId();
-
-            bool result;
-            switch (currency.Type)
+            int userId = HttpContext.GetCurrentUserId()!.Value;
+            var result = currency.Type switch
             {
-                case CurrencyType.Fiat:
-                    result = _depositFiatService.CreateDeposit(userId, depositDTO, currency.Id);
-                    break;
-                case CurrencyType.Crypto:
-                    result = _depositCryptoService.CreateDeposit(userId, depositDTO, currency.Id);
-                    break;
-                default:
-                    result = false;
-                    break;
-            }
+                CurrencyType.Fiat => _depositFiatService.CreateDeposit(userId, depositDTO, currency.Id),
+                CurrencyType.Crypto => _depositCryptoService.CreateDeposit(userId, depositDTO, currency.Id),
+                _ => false,
+            };
 
             if (!result)
                 return BadRequest("Wrong additional data lenght, crypto address and fiat cardnumber must be 16 characters, and fiat cardholder name between 2 and 16 characters");
@@ -90,7 +85,7 @@
         private Dictionary<string, BalanceDTO> ConvertToBalanceDTO(List<UserBalance>? balances)
         {
             if (balances is null)
-                return new Dictionary<string, BalanceDTO>();
+                return new();
 
             var usdBalances = _convertToUsdService.ConvertCurrency(balances.Select(x => (x.CurrencyId, x.Amount)).ToList());
             var balancesZip = usdBalances.Zip(balances);

@@ -1,3 +1,6 @@
+
+using UserWallet.Services.Services;
+
 namespace UserWallet
 {
     public partial class Program
@@ -9,10 +12,6 @@ namespace UserWallet
             
             var app = builder.Build();
             app.UseCors();
-            using (var scope = app.Services.CreateScope())
-            {
-                SeedDataFromJson.Initialize(scope.ServiceProvider);
-            }
 
             if (app.Environment.IsDevelopment())
             {
@@ -56,8 +55,11 @@ namespace UserWallet
                };
            });
             services.AddAuthorization();
+            services.AddHostedService<SeedDataFromJsonService>();
             services.AddScoped<IConvertToUsdService, ConvertToUsdService>();
+            services.AddScoped<ICurrencyService, CurrencyService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ITransactionService, TransactionService>();
             services.AddScoped<IDepositFiatService, DepositFiatService>();
             services.AddScoped<IDepositCryptoService, DepositCryptoService>();

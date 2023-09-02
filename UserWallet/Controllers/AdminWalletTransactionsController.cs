@@ -19,21 +19,25 @@
         [HttpPost("approve/{txId:int}")]
         public IActionResult ApproveTransaction(int txId)
         {
-            bool result = _transactionService.ApproveTransaction(txId);
-            if (!result)
-                return NotFound();
-
-            return Ok();
+            var (Result, Message) = _transactionService.ApproveTransaction(txId);
+            return Result switch
+            {
+                ServiceResult.Success => Ok(),
+                ServiceResult.NotFound => NotFound(),
+                _ => BadRequest(Message)
+            };
         }
 
         [HttpPost("decline/{txId:int}")]
         public IActionResult DeclineTransaction(int txId)
         {
-            bool result = _transactionService.DeclineTransaction(txId);
-            if (!result)
-                return NotFound();
-
-            return Ok();
+            var (Result, Message) = _transactionService.DeclineTransaction(txId);
+            return Result switch
+            {
+                ServiceResult.Success => Ok(),
+                ServiceResult.NotFound => NotFound(),
+                _ => BadRequest(Message)
+            };
         }
     }
 }

@@ -1,62 +1,94 @@
-﻿namespace UserWallet.Services
+﻿using Microsoft.Extensions.DependencyInjection;
+
+namespace UserWallet.Services
 {
     public class ExchangeRateGenerator : IHostedService
     {
         private readonly IOptionsMonitor<ExchangeRateGeneratorOptions> _config;
-        private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
-        private readonly Random rnd = new Random();
+        private readonly IServiceProvider _serviceProvider;
+        private readonly Random rnd = new();
+        private Task? _task;
+        private CancellationTokenSource _cts = new();
 
-        private Dictionary<string, decimal> currentRates = new Dictionary<string, decimal>();
-        private List<Currency> currencies;
-        private Task task;
+        private List<Currency>? currencies;
+        private Dictionary<string, decimal> rates = new();
 
-        public ExchangeRateGenerator(IOptionsMonitor<ExchangeRateGeneratorOptions> config, IDbContextFactory<ApplicationDbContext> contextFactory)
+        public ExchangeRateGenerator(IOptionsMonitor<ExchangeRateGeneratorOptions> config, IServiceProvider serviceProvider)
         {
-            _contextFactory = contextFactory;
+            _serviceProvider = serviceProvider;
             _config = config;
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            InitCurrencies();
-            InitRates();
-
-            task = UpdateRatesAsync(cancellationToken);
+            _cts = new CancellationTokenSource();
+            _task = UpdateRatesAsync(_cts.Token);
             return Task.CompletedTask;
         }
 
-        private void InitRates()
+        private async Task UpdateRatesAsync(CancellationToken cancellationToken)
         {
-            foreach (var currency in currencies)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                currentRates.Add(currency.Id, rnd.Next(80, 120));
-            }
-        }
-
-        private void InitCurrencies()
-        {
-            using var context = _contextFactory.CreateDbContext();
-            currencies = context.Currencies.ToList();
-        }
-
-        private async Task UpdateRatesAsync(CancellationToken stoppingToken)
-        {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                foreach (string key in currentRates.Keys)
+                try
                 {
-                    currentRates[key] *= 1 + 0.05m * rnd.Next(-1, 2);
-                }   
-                await Task.Delay(_config.CurrentValue.UpdateInterval, stoppingToken);
+                    UpdateRatesIfNeeded();
+                    if (rates.Keys is { Count: > 0 } keys)
+                    {
+                        foreach (var key in keys)
+                        {
+                            rates[key] *= 1 + 0.05m * rnd.Next(-1, 2);
+                        }
+                    }
+                    await Task.Delay(_config.CurrentValue.UpdateInterval, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+                catch (Exception) 
+                {
+                    await Task.Delay(_config.CurrentValue.UpdateInterval, cancellationToken);
+
+                }
             }
         }
-
-        public List<Currency> GetCurrencies()
-            => currencies;
 
         public Dictionary<string, decimal> GetCurrentRates()
-            => currentRates;
+        {
+            UpdateRatesIfNeeded();
+            return rates;
+        }
+
+        private void UpdateRatesIfNeeded()
+        {
+            UpdateCurrencies();
+            if(currencies is not null && rates.Count != currencies.Count)
+                UpdateRates();
+        }
+
+        private void UpdateCurrencies()
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var currencyService = scope.ServiceProvider.GetRequiredService<ICurrencyService>();
+            currencies = currencyService.GetCurrencies();
+        }
+
+        private void UpdateRates()
+        {
+            var currenciesIds = currencies!.Select(x => x.Id);
+            rates = rates.Where(r => currenciesIds.Contains(r.Key)).ToDictionary(k => k.Key, v => v.Value);
+            foreach (var currency in currenciesIds)
+            {
+                if(!rates.ContainsKey(currency))
+                    rates[currency] = rnd.Next(80, 120);
+            }
+        }
+
 
         public async Task StopAsync(CancellationToken cancellationToken)
-            => await task;
+        { 
+            _cts.Cancel();
+            await (_task ?? Task.CompletedTask);
+        }
     }
 }
