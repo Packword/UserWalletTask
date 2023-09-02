@@ -1,6 +1,3 @@
-using UserWallet.Data.Auth;
-using UserWallet.Services.Services;
-
 namespace UserWallet
 {
     public partial class Program
