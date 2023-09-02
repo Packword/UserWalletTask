@@ -32,9 +32,7 @@
             var userBalanceAfter = await Client.GetCurrentUserBalance();
 
             userBalanceAfter.Should().NotBeNull().And.ContainKey(CRYPTO_CURRENCY_ID);
-            var difference = userBalanceAfter![CRYPTO_CURRENCY_ID].Amount - (userBalanceBefore!.ContainsKey(CRYPTO_CURRENCY_ID) ?
-                                                                             userBalanceBefore[CRYPTO_CURRENCY_ID].Amount :
-                                                                             0);
+            var difference = userBalanceAfter![CRYPTO_CURRENCY_ID].Amount - (userBalanceBefore!.GetValueOrDefault(CRYPTO_CURRENCY_ID)?.Amount ?? 0);
             difference.Should().Be(DEFAULT_DEPOSIT_AMOUNT);
         }
 

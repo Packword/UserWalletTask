@@ -45,6 +45,11 @@ namespace UserWallet.Services
                 {
                     return;
                 }
+                catch (Exception) 
+                {
+                    await Task.Delay(_config.CurrentValue.UpdateInterval, cancellationToken);
+
+                }
             }
         }
 
@@ -75,7 +80,7 @@ namespace UserWallet.Services
             foreach (var currency in currenciesIds)
             {
                 if(!rates.ContainsKey(currency))
-                    rates.Add(currency, rnd.Next(80, 120));
+                    rates[currency] = rnd.Next(80, 120);
             }
         }
 
