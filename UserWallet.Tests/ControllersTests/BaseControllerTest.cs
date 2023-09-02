@@ -1,4 +1,5 @@
-﻿using NUnit.Framework.Internal;
+﻿using Microsoft.Extensions.Options;
+using NUnit.Framework.Internal;
 using System.Configuration;
 using UserWallet.OptionsModels;
 
@@ -29,7 +30,7 @@ namespace UserWallet.Tests.ControllersTests
         [OneTimeSetUp]
         public virtual void OneTimeSetup()
         {
-            Factory = WebApplicationFactoryHelper.CreateFactoryWithInMemoryDb(EXCHANGE_UPDATE_INTERVAL);
+            Factory = WebApplicationFactoryHelper.CreateFactoryWithInMemoryDb();
         }
 
         [SetUp]
@@ -40,6 +41,8 @@ namespace UserWallet.Tests.ControllersTests
             using var scope = sp.CreateScope();
             var scopedServices = scope.ServiceProvider;
 
+            var exchangeOptions = scopedServices.GetRequiredService<IOptionsMonitor<ExchangeRateGeneratorOptions>>().CurrentValue;
+            exchangeOptions.UpdateInterval = EXCHANGE_UPDATE_INTERVAL;
             var db = scopedServices.GetRequiredService<ApplicationDbContext>();
             db.Database.EnsureDeleted();
             db.Database.EnsureCreated();
