@@ -1,4 +1,6 @@
 ﻿@inject IUserBalanceService UserBalanceService
+@inject UserStore UserStore
+
 
 @if(balances is null)
 {
@@ -14,17 +16,17 @@ else{
     </BalanceList>
 }
 @code {
-    [Parameter] public int UserId { get; set; }
-
-    private Dictionary<string, BalanceDTO> balances;
+    private Dictionary<string, BalanceDTO>? balances;
     private decimal totalUsd;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
 
-        var userBalances = UserBalanceService.GetUserBalances(UserId).Balances;
+        var userId = UserStore.CurrentUser.GetId()!.Value;
+
+        var userBalances = UserBalanceService.GetUserBalances(userId).Balances;
         balances = UserBalanceService.ConvertToBalanceDTO(userBalances);
-        totalUsd = balances.Values.Select(v => v.UsdAmount).Aggregate((x, y) => x + y);
+        totalUsd = balances.Values.Sum(v => v.UsdAmount);
     }
 }
