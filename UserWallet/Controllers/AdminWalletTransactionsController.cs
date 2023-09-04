@@ -1,6 +1,6 @@
 ﻿namespace UserWallet.Controllers
 {
-    [Route("admin/wallet/tx")]
+    [Route("api/admin/wallet/tx")]
     [Authorize(Roles = UsersRole.ADMIN)]
     [ApiController]
     public class AdminWalletTransactionsController : ControllerBase

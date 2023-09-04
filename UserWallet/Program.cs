@@ -24,6 +24,7 @@ namespace UserWallet
 
             app.MapBlazorHub();
             app.MapControllers();
+            app.MapFallback("/api/{*path}", () => Results.NotFound());
             app.MapFallbackToPage("/_Host");
 
             app.Run();

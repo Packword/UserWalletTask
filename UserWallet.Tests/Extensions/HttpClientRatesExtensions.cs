@@ -3,6 +3,6 @@
     public static class HttpClientRatesExtension
     {
         public async static Task<HttpResponseMessage> GetRates(this HttpClient client)
-            => await client.GetAsync("/rates");
+            => await client.GetAsync("api/rates");
     }
 }
