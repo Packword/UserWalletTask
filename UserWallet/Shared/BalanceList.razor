@@ -1,0 +1,17 @@
+﻿<div class="balance-list-container">
+    <table>
+        <tr>
+            <th>Currency</th>
+            <th>Amount</th>
+            <th>Usd amount</th>
+            <th>Actions</th>
+        </tr>
+        @{
+            @ChildContent
+        }
+    </table>
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent{ get; set; }
+}

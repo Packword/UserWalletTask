@@ -1,0 +1,34 @@
+﻿<tr>
+    <td>@Currency</td>
+    <td>@String.Format("{0: 0.000}", Amount)</td>
+    <td>@String.Format("{0: 0.000}", UsdAmount)</td>
+    <td>
+        <AuthorizeView Roles="User">
+            <button class="btn btn-primary" @onclick="@ModalShow">Deposit</button>
+            @if (showDepositModal)
+            {
+                <DepositModal OnDepositCreated="@HandleOnDepositCreated" CurrencyId="@Currency" />
+            }
+        </AuthorizeView>
+        <!--
+        <AuthorizeView Roles="Admin">
+            <button class="btn btn-primary">Transactions</button>
+        </AuthorizeView>
+        -->
+    </td>
+</tr>
+
+@code {
+    [Parameter] public string Currency { get; set; }
+    [Parameter] public decimal Amount { get; set; }
+    [Parameter] public decimal UsdAmount { get; set; }
+
+    private bool showDepositModal;
+
+    public void ModalShow()
+        => showDepositModal = true;
+
+    public void HandleOnDepositCreated()
+        => showDepositModal = false;
+
+}

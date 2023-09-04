@@ -4,7 +4,9 @@
     {
         private const int CARDNUMBER_LENGTH = 16;
         private const int CARDHOLDER_MINLENGTH = 2;
-        private const int CARDHOLDER_MAXLENGTH = 16;
+        private const int CARDHOLDER_MAXLENGTH = 16; 
+        private const decimal AMOUNT_MIN_VALUE = 0.1m;
+        private const decimal AMOUNT_MAX_VALUE = 100m;
 
         private readonly ApplicationDbContext _db;
         public DepositFiatService(ApplicationDbContext db)
@@ -12,10 +14,11 @@
             _db = db;
         }
 
-        public bool CreateDeposit(int userId, DepositDTO deposit, string currencyId)
+        public (bool Result, string Message) CreateDeposit(int userId, DepositDTO deposit, string currencyId)
         {
-            if (!IsAdditionalDataValid(deposit))
-                return false;
+            var validationResult = ValidateAdditionalData(deposit);
+            if (!validationResult.Result)
+                return validationResult;
 
             Deposit newDeposit = new()
             {
@@ -31,11 +34,27 @@
             };
             _db.Deposits.Add(newDeposit);
             _db.SaveChanges();
-            return true;
+            return validationResult;
         }
 
-        private static bool IsAdditionalDataValid(DepositDTO deposit)
-             => deposit.CardNumber?.Length >= CARDNUMBER_LENGTH
-                && deposit.CardholderName?.Length is >= CARDHOLDER_MINLENGTH and <= CARDHOLDER_MAXLENGTH;
+        private static (bool Result, string Message) ValidateAdditionalData(DepositDTO deposit)
+        {
+            if (deposit.CardholderName is null)
+                return (false, "Cardholder name is required");
+            else if (deposit.CardNumber is null)
+                return (false, "Cardnumber name is required");
+            else if (deposit.CardNumber?.Length != CARDNUMBER_LENGTH)
+                return (false, $"Cardnumber must contain {CARDNUMBER_LENGTH} characters");
+            else if (deposit.CardholderName?.Length < CARDHOLDER_MINLENGTH)
+                return (false, $"Cardholder name must contain atleast {CARDHOLDER_MINLENGTH} characters");
+            else if (deposit.CardholderName?.Length > CARDHOLDER_MAXLENGTH)
+                return (false, $"Cardholder name must be less than {CARDHOLDER_MAXLENGTH} characters");
+            else if (deposit.Amount < AMOUNT_MIN_VALUE)
+                return (false, $"Amount must be atleast {AMOUNT_MIN_VALUE}");
+            else if (deposit.Amount > AMOUNT_MAX_VALUE)
+                return (false, $"Amount must be less than {AMOUNT_MAX_VALUE}");
+            else
+                return (true, "");
+        }
     }
 }

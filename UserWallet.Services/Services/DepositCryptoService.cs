@@ -3,16 +3,19 @@
     public class DepositCryptoService : IDepositCryptoService
     {
         private const int ADDRESS_LENGTH = 16;
+        private const decimal AMOUNT_MIN_VALUE = 0.1m;
+        private const decimal AMOUNT_MAX_VALUE = 100m;
 
         private readonly ApplicationDbContext _db;
         public DepositCryptoService(ApplicationDbContext db)
         {
             _db = db;
         }
-        public bool CreateDeposit(int userId, DepositDTO deposit, string currencyId)
+        public (bool Result, string Message) CreateDeposit(int userId, DepositDTO deposit, string currencyId)
         {
-            if (!IsAdditionalDataValid(deposit))
-                return false;
+            var validationResult = ValidateAdditionalData(deposit);
+            if (!validationResult.Result)
+                return validationResult;
 
             Deposit newDeposit = new()
             {
@@ -27,10 +30,20 @@
             };
             _db.Deposits.Add(newDeposit);
             _db.SaveChanges();
-            return true;
+            return validationResult;
         }
 
-        private static bool IsAdditionalDataValid(DepositDTO deposit)
-            => deposit.Address?.Length == ADDRESS_LENGTH;
-    }
+        private static (bool Result, string Message) ValidateAdditionalData(DepositDTO deposit) {
+            if (deposit.Address is null)
+                return (false, "Address is required");
+            else if (deposit.Address?.Length != ADDRESS_LENGTH)
+                return (false, $"Address must contain {ADDRESS_LENGTH} characters");
+            else if (deposit.Amount < AMOUNT_MIN_VALUE)
+                return (false, $"Amount must be atleast {AMOUNT_MIN_VALUE}");
+            else if (deposit.Amount > AMOUNT_MAX_VALUE)
+                return (false, $"Amount must be less than {AMOUNT_MAX_VALUE}");
+            else
+                return (true, "");
+        }
+}
 }

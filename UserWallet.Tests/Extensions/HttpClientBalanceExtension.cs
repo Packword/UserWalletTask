@@ -4,20 +4,20 @@
     {
         public async static Task<Dictionary<string, BalanceDTO>?> GetCurrentUserBalance(this HttpClient client)
         {
-            var response = await client.GetAsync("wallet/balance");
+            var response = await client.GetAsync("api/wallet/balance");
             return await response.GetContentAsync<Dictionary<string, BalanceDTO>>();
         }
 
         public async static Task<HttpResponseMessage> GetCurrentUserBalanceResponse(this HttpClient client)
-            => await client.GetAsync("wallet/balance");
+            => await client.GetAsync("api/wallet/balance");
 
         public async static Task<Dictionary<string, BalanceDTO>?> GetUserBalance(this HttpClient client, int id)
         {
-            var response = await client.GetAsync($"wallet/{id}");
+            var response = await client.GetAsync($"api/wallet/{id}");
             return await response.GetContentAsync<Dictionary<string, BalanceDTO>>();
         }
 
         public async static Task<HttpResponseMessage> GetUserBalanceResponse(this HttpClient client, string? id)
-           => await client.GetAsync($"wallet/{id}");
+           => await client.GetAsync($"api/wallet/{id}");
     }
 }
