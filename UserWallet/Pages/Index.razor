@@ -1,0 +1,13 @@
+﻿@page "/"
+
+<PageTitle>Index</PageTitle>
+<AuthorizeView>
+    <Authorized>
+        Hello, @context.User.FindFirst(ClaimTypes.Name).Value <br />
+        Your role is @context.User.FindFirst(ClaimTypes.Role).Value
+        <Logout />
+    </Authorized>
+    <NotAuthorized>
+        <Login />
+    </NotAuthorized>
+</AuthorizeView>

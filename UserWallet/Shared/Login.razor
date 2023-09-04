@@ -1,0 +1,37 @@
+﻿@using System.Text.Json;
+@using System.Security.Claims;
+@using UserWallet.Data.Auth;
+@inject IHttpClientFactory ClientFactory
+@inject NavigationManager NavManager
+@inject UserStore UserStore
+@inject IAuthService AuthService
+
+<div class="login-form-container">
+    <h1>Login</h1>
+    <input class="form-control w-25" type="text" placeholder="Username..." @bind-value="LoginForm.Username" /> 
+    <input class="form-control w-25" type="password" placeholder="Password..." @bind-value="LoginForm.Password" />
+    <button type="submit" class="btn btn-primary" @onclick="() => OnSignIn(LoginForm)">Sign In</button>
+    <br/>
+    <ResponseStatusCodeHandler EntityName="User" Response="@Response"></ResponseStatusCodeHandler>
+</div>
+
+@code {
+    private LoginDTO LoginForm { get; set; } = new();
+
+    private HttpResponseMessage? Response { get; set; }
+
+    private async Task OnSignIn(LoginDTO LoginModel)
+    {
+        using var client = ClientFactory.CreateClient();
+        Console.WriteLine($"username {LoginModel.Username} --- password {LoginModel.Password}");
+        Response = await client.PostAsJsonAsync(ApiURL.LOGIN_URL, LoginModel);
+        if (Response.StatusCode is HttpStatusCode.OK) await OnSuccess();
+    }
+
+    private async Task OnSuccess()
+    {
+        var user = await Response.Content.ReadFromJsonAsync<User>(WalletJsonOptions.JSON_SERIALIZER_OPTIONS);
+        var principal = AuthService.MakeClaims(user);
+        UserStore.CurrentUser = principal;
+    }
+}

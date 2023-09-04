@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UserWallet.Services", "User
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UserWallet.Data", "UserWallet.Data\UserWallet.Data.csproj", "{B2F28F9E-67C3-4224-864F-785E4EAE2CF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserWallet.Tests", "UserWallet.Tests\UserWallet.Tests.csproj", "{4304063C-29C7-45EF-AC01-AAB4CC99675A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UserWallet.Tests", "UserWallet.Tests\UserWallet.Tests.csproj", "{4304063C-29C7-45EF-AC01-AAB4CC99675A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

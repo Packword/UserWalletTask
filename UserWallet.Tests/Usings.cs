@@ -6,6 +6,7 @@ global using UserWallet.Tests.Helpers;
 global using UserWallet.Data;
 global using UserWallet.Models;
 global using UserWallet.Data.Enums;
+global using UserWallet.OptionsModels;
 global using Microsoft.EntityFrameworkCore;
 global using System.Text.Json;
 global using System.Net.Http.Json;

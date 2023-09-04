@@ -1,0 +1,59 @@
+﻿@using System.Text.Json;
+
+@if (Message is not "")
+{
+    <p>@((MarkupString)Message)</p>
+}
+
+@code {
+    private string Message { get; set; } = "";
+
+    [Parameter] public HttpResponseMessage Response { get; set; }
+    [Parameter] public string? EntityName { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (Response is not null)
+        {
+            Message = Response.StatusCode switch
+            {
+                HttpStatusCode.OK => "",
+                HttpStatusCode.NotFound => $"{EntityName} is not found",
+                HttpStatusCode.Unauthorized => "Unathorized",
+                HttpStatusCode.BadRequest => HandleErrors()
+            };
+        }
+    }
+
+    private string HandleErrors()
+    {
+        var content =  Response.Content.ReadAsStringAsync();
+        try
+        {
+            var problems = JsonSerializer.Deserialize<ValidationProblemDetails>(content.Result);
+            return String.Join("<br/>", problems.Errors.Values.Select(v => String.Join(Environment.NewLine, v)));
+        }
+        catch
+        {
+            return content.Result;
+        }
+    }
+
+    private class ValidationProblemDetails
+    {
+        [JsonPropertyName("status")]
+        public int? Status { get; set; }
+
+        [JsonPropertyName("title")]
+        public string Title { get; set; }
+
+        [JsonPropertyName("type")]
+        public string Type { get; set; }
+
+        [JsonPropertyName("traceId")]
+        public string TraceId { get; set; }
+
+        [JsonPropertyName("errors")]
+        public IDictionary<string, string[]> Errors { get; set; }
+    }
+}

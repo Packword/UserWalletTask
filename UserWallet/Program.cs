@@ -1,6 +1,3 @@
-
-using UserWallet.Services.Services;
-
 namespace UserWallet
 {
     public partial class Program
@@ -13,15 +10,21 @@ namespace UserWallet
             var app = builder.Build();
             app.UseCors();
 
-            if (app.Environment.IsDevelopment())
+            if (!app.Environment.IsDevelopment())
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseExceptionHandler("/Error");
             }
+
+            app.UseStaticFiles();
+
+            app.UseRouting();
+
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.MapBlazorHub();
             app.MapControllers();
+            app.MapFallbackToPage("/_Host");
 
             app.Run();
         }
@@ -54,7 +57,12 @@ namespace UserWallet
                    return Task.CompletedTask;
                };
            });
+            services.AddRazorPages();
+            services.AddServerSideBlazor();
             services.AddAuthorization();
+            services.AddHttpClient();
+            services.AddSingleton<UserStore>();
+            services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
             services.AddHostedService<SeedDataFromJsonService>();
             services.AddScoped<IConvertToUsdService, ConvertToUsdService>();
             services.AddScoped<ICurrencyService, CurrencyService>();
@@ -69,7 +77,6 @@ namespace UserWallet
             services.AddDbContextFactory<ApplicationDbContext>(options =>
                 options.UseNpgsql(configuration.GetConnectionString("ApplicationDbContext")));
             services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen();
         }
     }
 }
