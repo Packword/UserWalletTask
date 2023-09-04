@@ -7,7 +7,7 @@ namespace UserWallet.Tests.Extensions
     public static class HttpResponseExtension
     {
         public async static Task<T?> GetContentAsync<T>(this HttpResponseMessage response)
-            => await response.Content.ReadFromJsonAsync<T>(TestOptions.JSON_OPTIONS);
+            => await response.Content.ReadFromJsonAsync<T>(WalletJsonOptions.JSON_SERIALIZER_OPTIONS);
 
         public static IDictionary<string, string[]>? GetErrors(this HttpResponseMessage response)
         {

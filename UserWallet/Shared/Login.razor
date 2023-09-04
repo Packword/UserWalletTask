@@ -30,7 +30,7 @@
 
     private async Task OnSuccess()
     {
-        var user = await Response.Content.ReadFromJsonAsync<User>(BlazorOptions.JSON_SERIALIZE_OPTIONS);
+        var user = await Response.Content.ReadFromJsonAsync<User>(WalletJsonOptions.JSON_SERIALIZER_OPTIONS);
         var principal = AuthService.MakeClaims(user);
         UserStore.CurrentUser = principal;
     }

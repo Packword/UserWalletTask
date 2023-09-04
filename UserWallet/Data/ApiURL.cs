@@ -2,7 +2,8 @@
 {
     public static class ApiURL
     {
-        public const string LOGIN_URL = @"http://localhost:5140/auth/login";
-        public const string LOGOUT_URL = @"http://localhost:5140/auth/logout";
+        public const string BASE_PATH = @"http://localhost:5140";
+        public const string LOGIN_URL = BASE_PATH + "/auth/login";
+        public const string LOGOUT_URL = BASE_PATH + "/auth/logout";
     }
 }
