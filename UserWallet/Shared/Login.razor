@@ -22,15 +22,15 @@
 
     private async Task OnSignIn(LoginDTO LoginModel)
     {
-        var client = ClientFactory.CreateClient();
+        using var client = ClientFactory.CreateClient();
         Console.WriteLine($"username {LoginModel.Username} --- password {LoginModel.Password}");
-        Response = await client.PostAsJsonAsync("http://localhost:5140/auth/login", LoginModel);
+        Response = await client.PostAsJsonAsync(ApiURL.LOGIN_URL, LoginModel);
         if (Response.StatusCode is HttpStatusCode.OK) await OnSuccess();
     }
 
     private async Task OnSuccess()
     {
-        var user = await Response.Content.ReadFromJsonAsync<User>(new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+        var user = await Response.Content.ReadFromJsonAsync<User>(BlazorOptions.JSON_SERIALIZE_OPTIONS);
         var principal = AuthService.MakeClaims(user);
         UserStore.CurrentUser = principal;
     }

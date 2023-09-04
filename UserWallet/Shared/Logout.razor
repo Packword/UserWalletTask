@@ -6,8 +6,8 @@
 @code {
     private async Task OnSignOut()
     {
-        var client = ClientFactory.CreateClient();
-        await client.PostAsJsonAsync("http://localhost:5140/auth/logout", "");
+        using var client = ClientFactory.CreateClient();
+        await client.PostAsJsonAsync(ApiURL.LOGOUT_URL, "");
         UserStore.CurrentUser = new ClaimsPrincipal();
     }
 }
