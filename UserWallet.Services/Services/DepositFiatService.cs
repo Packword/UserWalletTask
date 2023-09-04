@@ -39,15 +39,19 @@
 
         private static (bool Result, string Message) ValidateAdditionalData(DepositDTO deposit)
         {
-            if (deposit.CardNumber?.Length != CARDNUMBER_LENGTH)
+            if (deposit.CardholderName is null)
+                return (false, "Cardholder name is required");
+            else if (deposit.CardNumber is null)
+                return (false, "Cardnumber name is required");
+            else if (deposit.CardNumber?.Length != CARDNUMBER_LENGTH)
                 return (false, $"Cardnumber must contain {CARDNUMBER_LENGTH} characters");
-            else if (deposit.CardholderName?.Length is < CARDHOLDER_MINLENGTH)
+            else if (deposit.CardholderName?.Length < CARDHOLDER_MINLENGTH)
                 return (false, $"Cardholder name must contain atleast {CARDHOLDER_MINLENGTH} characters");
-            else if (deposit.CardholderName?.Length is > CARDHOLDER_MAXLENGTH)
+            else if (deposit.CardholderName?.Length > CARDHOLDER_MAXLENGTH)
                 return (false, $"Cardholder name must be less than {CARDHOLDER_MAXLENGTH} characters");
-            else if (deposit.Amount is < AMOUNT_MIN_VALUE)
+            else if (deposit.Amount < AMOUNT_MIN_VALUE)
                 return (false, $"Amount must be atleast {AMOUNT_MIN_VALUE}");
-            else if (deposit.Amount is > AMOUNT_MAX_VALUE)
+            else if (deposit.Amount > AMOUNT_MAX_VALUE)
                 return (false, $"Amount must be less than {AMOUNT_MAX_VALUE}");
             else
                 return (true, "");

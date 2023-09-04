@@ -34,11 +34,13 @@
         }
 
         private static (bool Result, string Message) ValidateAdditionalData(DepositDTO deposit) {
-            if (deposit.Address?.Length != ADDRESS_LENGTH)
+            if (deposit.Address is null)
+                return (false, "Address is required");
+            else if (deposit.Address?.Length != ADDRESS_LENGTH)
                 return (false, $"Address must contain {ADDRESS_LENGTH} characters");
-            else if (deposit.Amount is < AMOUNT_MIN_VALUE)
+            else if (deposit.Amount < AMOUNT_MIN_VALUE)
                 return (false, $"Amount must be atleast {AMOUNT_MIN_VALUE}");
-            else if (deposit.Amount is > AMOUNT_MAX_VALUE)
+            else if (deposit.Amount > AMOUNT_MAX_VALUE)
                 return (false, $"Amount must be less than {AMOUNT_MAX_VALUE}");
             else
                 return (true, "");
