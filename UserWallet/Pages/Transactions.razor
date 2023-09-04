@@ -2,7 +2,7 @@
 
 @inject UserStore UserStore
 @inject IUserService UserService
-@inject ExchangeRateGenerator ExchangeRateGenerator
+@inject ICurrencyService CurrencyService
 
 @attribute [Authorize]
 
@@ -20,7 +20,7 @@
     {
         base.OnInitialized();
 
-        currenciesId = ExchangeRateGenerator.GetCurrencies().Select(c => c.Id).ToList();
+        currenciesId = CurrencyService.GetCurrencies().Select(c => c.Id).ToList();
 
         if (UserStore.CurrentUser.IsInRole("Admin"))
             usersId = UserService.GetUsers().Select(u => u.Id).ToList();
