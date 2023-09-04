@@ -230,8 +230,16 @@
             );
             yield return new TestCaseData(
                 FIAT_CURRENCY_ID,
+                new DepositDTO(DEFAULT_DEPOSIT_AMOUNT, null, null, FIAT_CARDNUMBER)
+            );
+            yield return new TestCaseData(
+                FIAT_CURRENCY_ID,
                 new DepositDTO(DEFAULT_DEPOSIT_AMOUNT, null, "12345678901234567890", FIAT_CARDNUMBER)
             );
+            yield return new TestCaseData(
+                FIAT_CURRENCY_ID,
+                new DepositDTO(DEFAULT_DEPOSIT_AMOUNT, null, FIAT_CARDHOLDER, null)
+            ); ;
             yield return new TestCaseData(
                 FIAT_CURRENCY_ID,
                 new DepositDTO(DEFAULT_DEPOSIT_AMOUNT, null, FIAT_CARDHOLDER, "1234")
