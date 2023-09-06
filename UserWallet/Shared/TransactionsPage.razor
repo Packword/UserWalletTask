@@ -10,7 +10,7 @@ else
         <select @bind="@chosenStatuses" multiple>
             @foreach(DepositStatus status in statuses)
             {
-                <option value="@status" @key="@status">@status.ToString()</option>
+                <option value="@status">@status.ToString()</option>
             }
         </select>
         @if (!IsCurrencyTransactions)
@@ -20,7 +20,7 @@ else
                 <select @bind="@chosenCurrencies" multiple>
                     @foreach (string currency in CurrenciesId)
                     {
-                        <option value="@currency" @key="@currency">@currency</option>
+                        <option value="@currency">@currency</option>
                     }
                 </select>
             }
@@ -66,9 +66,9 @@ else
     {
         currentTransactions = transactions?.Select(t => t).ToList();
 
-        if (chosenCurrencies.Count() != 0)
+        if (chosenCurrencies.Length != 0)
             currentTransactions = currentTransactions?.Where(t => chosenCurrencies.Contains(t.CurrencyId)).ToList();
-        if (chosenStatuses.Count() != 0)
+        if (chosenStatuses.Length != 0)
             currentTransactions = currentTransactions?.Where(t => chosenStatuses.Contains(t.Status)).ToList();
         if (chosenUserId is not null)
             currentTransactions = currentTransactions?.Where(t => t.UserId == chosenUserId).ToList();
