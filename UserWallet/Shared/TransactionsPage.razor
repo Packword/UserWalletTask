@@ -26,8 +26,8 @@ else
             }
             <AuthorizeView Roles="Admin">
                 <input type="number" class="form-control w-25" placeholder="UserId..." min="0" @bind-value="@chosenUserId"/>
-                <button class="btn btn-primary" @onclick="FilterTransactions">Search</button>
             </AuthorizeView>
+            <button class="btn btn-primary" @onclick="FilterTransactions">Search</button>
         }
     </div>
     <TransactionsList>
