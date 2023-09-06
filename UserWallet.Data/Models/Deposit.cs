@@ -12,7 +12,7 @@
         public int UserId { get; set; }
 
         [Column("created_on")]
-        public DateTime CreatedOn { get; set; }
+        public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
 
         public User? User { get; set; }
 
@@ -30,10 +30,5 @@
 
         [Column("status")]
         public DepositStatus Status { get; set; }
-
-        public Deposit()
-        {
-            CreatedOn = DateTime.UtcNow;
-        }
     }
 }
