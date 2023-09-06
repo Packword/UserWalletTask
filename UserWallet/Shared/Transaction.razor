@@ -1,13 +1,13 @@
 ﻿@inject ITransactionService TransactionService
 
 <tr style="@StyleByStatus(TransactionModel.Status)">
-    <th>@TransactionModel.CreatedOn</th>
+    <td>@TransactionModel.CreatedOn</td>
     <AuthorizeView Roles="Admin">
         <th>@TransactionModel.UserId</th>
     </AuthorizeView>
-    <th>@TransactionModel.Amount @TransactionModel.CurrencyId</th>
-    <th>@TransactionModel.Status</th>
-    <th>
+    <td>@TransactionModel.Amount @TransactionModel.CurrencyId</td>
+    <td>@TransactionModel.Status</td>
+    <td>
         @if (TransactionModel.Status is DepositStatus.Undecided)
         {
             <AuthorizeView Roles="Admin">
@@ -19,7 +19,7 @@
             </AuthorizeView>
             @statusChangeResult
         }
-    </th>
+    </td>
 </tr>
 
 
