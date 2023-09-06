@@ -2,15 +2,15 @@
 @inject NavigationManager Navigation
 
 <tr>
-    <th>@UserModel.Username</th>
-    <th>@String.Format("{0: 0.000}", totalUsd)</th>
-    <th>
+    <td>@UserModel.Username</td>
+    <td>@String.Format("{0: 0.000}", totalUsd)</td>
+    <td>
         <button class="btn btn-primary" @onclick="() => GoToPersonalPage(UserModel.Id)">Show</button>
         @if (UserModel.Role is UsersRole.USER)
         {
            <button class="btn btn-secondary" @onclick="() => GoToTransactions(UserModel.Id)">Transactions</button>
         }
-    </th>
+    </td>
 </tr>
 
 @code {
@@ -18,19 +18,30 @@
 
     private decimal totalUsd = 0;
 
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        totalUsd = CalculateTotalUsd();
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        totalUsd = CalculateTotalUsd();
+    }
+
+    private decimal CalculateTotalUsd()
+    {
+        var userBalances = UserBalanceService.GetUserBalances(UserModel.Id).Balances;
+        var balances = UserBalanceService.ConvertToBalanceDTO(userBalances);
+        return balances?.Values.Sum(b => b.UsdAmount) ?? 0;
+    }
+
     private void GoToTransactions(int id)
         => Navigation.NavigateTo($"transactions/{id}");
 
     private void GoToPersonalPage(int id)
         => Navigation.NavigateTo($"users/{id}");
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-
-        var userBalances = UserBalanceService.GetUserBalances(UserModel.Id).Balances;
-        var balances = UserBalanceService.ConvertToBalanceDTO(userBalances);
-        if (balances is not null && balances.Values.Count() != 0)
-            totalUsd = balances.Values.Select(v => v.UsdAmount).Aggregate((x, y) => x + y);
-    }
 }
