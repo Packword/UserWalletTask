@@ -7,31 +7,25 @@
 else
 {
     <div class="transaction-filtration">
-        <table class="filter-block">
+        <select @bind="@chosenStatuses" multiple>
             @foreach(DepositStatus status in statuses)
             {
-                <tr>
-                    <th>@status.ToString()</th>
-                    <th><input type="checkbox" @onchange="eventArgs => HandleStatusFiltrationChanged(status, eventArgs.Value)"/> </th>
-                </tr>
+                <option value="@status" @key="@status">@status.ToString()</option>
             }
-        </table>
+        </select>
         @if (!IsCurrencyTransactions)
         {
             @if (CurrenciesId is not null)
             {
-                <table class="filter-block">
+                <select @bind="@chosenCurrencies" multiple>
                     @foreach (string currency in CurrenciesId)
                     {
-                        <tr>
-                            <th>@currency</th>
-                            <th><input type="checkbox" @onchange="eventArgs => HandleCurrencyFiltrationChanged(currency, eventArgs.Value)" /> </th>
-                        </tr>
+                        <option value="@currency" @key="@currency">@currency</option>
                     }
-                </table>
+                </select>
             }
             <AuthorizeView Roles="Admin">
-                <input type="number" class="form-control w-25" placeholder="UserId..." min="0" @bind-value="@choosenUserId"/>
+                <input type="number" class="form-control w-25" placeholder="UserId..." min="0" @bind-value="@chosenUserId"/>
                 <button class="btn btn-primary" @onclick="FilterTransactions">Search</button>
             </AuthorizeView>
         }
@@ -53,12 +47,13 @@ else
     [Parameter] public IEnumerable<string>? CurrenciesId { get; set; }
     [Parameter] public bool IsCurrencyTransactions { get; set; }
 
-    private int? choosenUserId;
+    private int? chosenUserId;
     private Array statuses = Enum.GetValues(typeof(DepositStatus));
-    private HashSet<DepositStatus> choosenStatuses = new();
-    private HashSet<string> choosenCurrencies = new();
+    private DepositStatus[] chosenStatuses = new DepositStatus[] { };
+    private string[] chosenCurrencies = new string[] { };
     private List<Deposit>? transactions;
     private List<Deposit>? currentTransactions;
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -67,50 +62,16 @@ else
         currentTransactions = transactions?.Select(t => t).ToList();
     }
 
-    private void HandleCurrencyFiltrationChanged(string currencyId, object checkedValue)
-    {
-        if ((bool)checkedValue)
-        {
-            if (!choosenCurrencies.Contains(currencyId))
-                choosenCurrencies.Add(currencyId);
-        }
-        else
-        {
-            if (choosenCurrencies.Contains(currencyId))
-                choosenCurrencies.Remove(currencyId);
-        }
-        FilterTransactions();
-    }
-
-    private void HandleStatusFiltrationChanged(DepositStatus status, object checkedValue)
-    {
-        if((bool)checkedValue)
-        {
-            if (!choosenStatuses.Contains(status))
-                choosenStatuses.Add(status);
-        }
-        else
-        {
-            if (choosenStatuses.Contains(status))
-                choosenStatuses.Remove(status);
-        }
-        FilterTransactions();
-    }
-
     private void FilterTransactions()
     {
-        int choosenCurrenciesCount = choosenCurrencies.Count();
-        int choosenStatusesCount = choosenStatuses.Count();
         currentTransactions = transactions?.Select(t => t).ToList();
-        if (choosenCurrenciesCount != 0 || choosenStatusesCount != 0 || choosenUserId is not null)
-        {
-            if (choosenCurrenciesCount != 0)
-                currentTransactions = currentTransactions?.Where(t => choosenCurrencies.Contains(t.CurrencyId)).ToList();
-            if (choosenStatusesCount != 0)
-                currentTransactions = currentTransactions?.Where(t => choosenStatuses.Contains(t.Status)).ToList();
-            if (choosenUserId is not null)
-                currentTransactions = currentTransactions?.Where(t => t.UserId == choosenUserId).ToList();
-        }
 
+        if (chosenCurrencies.Count() != 0)
+            currentTransactions = currentTransactions?.Where(t => chosenCurrencies.Contains(t.CurrencyId)).ToList();
+        if (chosenStatuses.Count() != 0)
+            currentTransactions = currentTransactions?.Where(t => chosenStatuses.Contains(t.Status)).ToList();
+        if (chosenUserId is not null)
+            currentTransactions = currentTransactions?.Where(t => t.UserId == chosenUserId).ToList();
     }
+
 }

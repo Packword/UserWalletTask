@@ -3,7 +3,7 @@
 <tr style="@StyleByStatus(TransactionModel.Status)">
     <td>@TransactionModel.CreatedOn</td>
     <AuthorizeView Roles="Admin">
-        <th>@TransactionModel.UserId</th>
+        <td>@TransactionModel.UserId</td>
     </AuthorizeView>
     <td>@TransactionModel.Amount @TransactionModel.CurrencyId</td>
     <td>@TransactionModel.Status</td>
