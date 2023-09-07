@@ -8,7 +8,7 @@ else
 {
     <div class="transaction-filtration">
         <select @bind="@chosenStatuses" multiple>
-            @foreach(DepositStatus status in statuses)
+            @foreach(var status in Enum.GetValues(typeof(DepositStatus)))
             {
                 <option value="@status">@status.ToString()</option>
             }
@@ -31,9 +31,9 @@ else
         }
     </div>
     <TransactionsList>
-        @if (currentTransactions is not null)
+        @if (transactions is not null)
         {
-            @foreach (var transaction in currentTransactions)
+            @foreach (var transaction in transactions)
             {
                 <Transaction TransactionModel="@transaction"></Transaction>
             }
@@ -48,30 +48,22 @@ else
     [Parameter] public bool IsCurrencyTransactions { get; set; }
 
     private int? chosenUserId;
-    private Array statuses = Enum.GetValues(typeof(DepositStatus));
-    private DepositStatus[] chosenStatuses = new DepositStatus[] { };
-    private string[] chosenCurrencies = new string[] { };
+    private DepositStatus[] chosenStatuses = Array.Empty<DepositStatus>();
+    private string[] chosenCurrencies = Array.Empty<string>();
     private List<Deposit>? transactions;
-    private List<Deposit>? currentTransactions;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
 
         transactions = TransactionService.GetDepositsWithFiltration(UsersId, CurrenciesId, null, true);
-        currentTransactions = transactions?.Select(t => t).ToList();
     }
 
     private void FilterTransactions()
     {
-        currentTransactions = transactions?.Select(t => t).ToList();
-
-        if (chosenCurrencies.Length != 0)
-            currentTransactions = currentTransactions?.Where(t => chosenCurrencies.Contains(t.CurrencyId)).ToList();
-        if (chosenStatuses.Length != 0)
-            currentTransactions = currentTransactions?.Where(t => chosenStatuses.Contains(t.Status)).ToList();
-        if (chosenUserId is not null)
-            currentTransactions = currentTransactions?.Where(t => t.UserId == chosenUserId).ToList();
+        transactions = TransactionService.GetDepositsWithFiltration(chosenUserId.HasValue ? new int[] { chosenUserId.Value } : null,
+                                                                    chosenCurrencies.Length != 0 ? chosenCurrencies : null,
+                                                                    chosenStatuses.Length != 0 ? chosenStatuses : null, 
+                                                                    true);
     }
-
 }
