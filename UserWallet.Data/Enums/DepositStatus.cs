@@ -4,6 +4,7 @@
     {
         Undecided,
         Approved,
-        Declined
+        Declined,
+        Canceled
     }
 }

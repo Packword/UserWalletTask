@@ -1,0 +1,21 @@
+﻿<div class="transactions-list-container">
+    <table>
+        <tr>
+            <th>Date</th>
+            <AuthorizeView Roles="Admin">
+                <th>UserId</th>
+            </AuthorizeView>
+            <th>Value</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+        @foreach (var transaction in Transactions)
+        {
+            <TransactionListItem Model="@transaction" />
+        }
+    </table>
+</div>
+
+@code {
+    [Parameter] public IEnumerable<Deposit> Transactions { get; set; } = Array.Empty<Deposit>();
+}

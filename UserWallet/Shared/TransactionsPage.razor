@@ -1,0 +1,63 @@
+﻿@inject ITransactionService TransactionService
+@inject ICurrencyService CurrencyService
+
+<div class="transaction-filtration">
+    <select @bind="@chosenStatuses" multiple>
+        @foreach(var status in Enum.GetValues(typeof(DepositStatus)))
+        {
+            <option value="@status">@status.ToString()</option>
+        }
+    </select>
+    @if (showCurrenciesFilter)
+    {
+        <select @bind="@chosenCurrencies" multiple>
+            @foreach (string currency in currentCurrencies)
+            {
+                <option value="@currency">@currency</option>
+            }
+        </select>
+    }
+    @if(showUsersFilter)
+    {
+        <AuthorizeView Roles="Admin">
+            <input type="number" class="form-control w-25" placeholder="UserId..." min="0" @bind-value="@chosenUserId"/>
+        </AuthorizeView>
+    }
+        <button class="btn btn-primary" @onclick="FilterTransactions">Search</button>
+</div>
+
+<TransactionsList Transactions="@transactions" />
+
+
+@code {
+    [Parameter] public IEnumerable<int>? UsersId { get; set; } = null;
+    [Parameter] public IEnumerable<string>? CurrenciesId { get; set; } = null;
+
+    private int? chosenUserId;
+    private DepositStatus[] chosenStatuses = Array.Empty<DepositStatus>();
+    private string[] chosenCurrencies = Array.Empty<string>();
+    private IEnumerable<string> currentCurrencies = Array.Empty<string>();
+    private List<Deposit>? transactions;
+    private bool showCurrenciesFilter;
+    private bool showUsersFilter;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        currentCurrencies = CurrenciesId ?? CurrencyService.GetCurrencies().Select(c => c.Id);
+
+        showCurrenciesFilter = CurrenciesId is null || CurrenciesId.Count() != 1;
+        showUsersFilter = UsersId is null || UsersId.Count() != 1;
+
+        FilterTransactions();
+    }
+
+    private void FilterTransactions()
+    {
+        transactions = TransactionService.GetDepositsWithFiltration(chosenUserId.HasValue ? new[] { chosenUserId.Value } : UsersId,
+                                                                    chosenCurrencies.Length != 0 ? chosenCurrencies : CurrenciesId,
+                                                                    chosenStatuses.Length != 0 ? chosenStatuses : null, 
+                                                                    true);
+    }
+}

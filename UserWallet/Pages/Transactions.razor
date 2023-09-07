@@ -1,0 +1,17 @@
+﻿@page "/transactions"
+
+@inject UserStore UserStore
+
+@attribute [Authorize]
+
+<PageTitle>Transactions</PageTitle>
+
+<h3>Transactions</h3>
+
+<AuthorizeView Roles="Admin">
+    <TransactionsPage/>
+</AuthorizeView>
+
+<AuthorizeView Roles="User">
+    <TransactionsPage UsersId="new[] { UserStore.CurrentUser.GetId()!.Value }"/>
+</AuthorizeView>

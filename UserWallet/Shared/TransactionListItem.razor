@@ -1,0 +1,50 @@
+﻿@inject ITransactionService TransactionService
+
+<tr style="@StyleByStatus(Model.Status)">
+    <td>@Model.CreatedOn</td>
+    <AuthorizeView Roles="Admin">
+        <td>@Model.UserId</td>
+    </AuthorizeView>
+    <td>@Model.Amount @Model.CurrencyId</td>
+    <td>@Model.Status</td>
+    <td>
+        @if (Model.Status is DepositStatus.Undecided)
+        {
+            <AuthorizeView Roles="Admin">
+                <button class="btn btn-success" @onclick="() => ChangeTransactionStatus(Model.Id, DepositStatus.Approved)">Approve</button>
+                <button class="btn btn-danger" @onclick="() => ChangeTransactionStatus(Model.Id, DepositStatus.Declined)">Decline</button>
+            </AuthorizeView>
+            <AuthorizeView Roles="User">
+                <button class="btn btn-danger" @onclick="() => ChangeTransactionStatus(Model.Id, DepositStatus.Canceled)">Cancel</button>
+            </AuthorizeView>
+            @statusChangeResult
+        }
+    </td>
+</tr>
+
+
+@code {
+    [Parameter] public Deposit Model { get; set; }
+
+    private string statusChangeResult = "";
+
+    private string StyleByStatus(DepositStatus status) => status switch
+    {
+        DepositStatus.Canceled => "background:coral",
+        DepositStatus.Approved => "background:lightgreen",
+        DepositStatus.Undecided => "background:lightgray",
+        DepositStatus.Declined => "background:red"
+    };
+
+    private void ChangeTransactionStatus(int transactionId, DepositStatus targetStatus)
+    {
+        var (Result, Message) = TransactionService.DecideTransactionStatus(transactionId, targetStatus);
+        if (Result is not ServiceResult.Success)
+            statusChangeResult = Message;
+        else
+        {
+            Model.Status = targetStatus;
+            statusChangeResult = "";
+        }
+    }
+}
