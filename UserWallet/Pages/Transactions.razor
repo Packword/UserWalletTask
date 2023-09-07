@@ -13,5 +13,5 @@
 </AuthorizeView>
 
 <AuthorizeView Roles="User">
-    <TransactionsPage UsersId="new List<int>() { UserStore.CurrentUser.GetId()!.Value }"/>
+    <TransactionsPage UsersId="new[] { UserStore.CurrentUser.GetId()!.Value }"/>
 </AuthorizeView>

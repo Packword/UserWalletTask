@@ -1,22 +1,8 @@
 ﻿@inject IUserBalanceService UserBalanceService
-@inject ICurrencyService CurrencyService
 @inject UserStore UserStore
 
 <p>Total Usd @String.Format("{0: 0.000}", totalUsd)</p>
-<BalanceList>
-    @foreach (var currency in CurrencyService.GetCurrencies().Select(c => c.Id))
-    {
-        if (balances is not null && balances.ContainsKey(currency)) 
-        {
-            <Balance Currency="@currency" Amount="balances[currency].Amount " UsdAmount="balances[currency].UsdAmount" />
-        }
-        else
-        {
-            <Balance Currency="@currency" />
-        }
-
-    }
-</BalanceList>
+<BalanceList Balances="balances" />
 
 @code {
     private Dictionary<string, BalanceDTO>? balances;

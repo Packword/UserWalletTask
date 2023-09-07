@@ -17,7 +17,7 @@
         public List<Deposit> GetDepositsWithFiltration(IEnumerable<int>? usersId = null,
                                                        IEnumerable<string>? currenciesId = null,
                                                        IEnumerable<DepositStatus>? statuses = null,
-                                                       bool byDate = false)
+                                                       bool orderByDate = false)
         {
             var transactions = _db.Deposits.AsQueryable();
             if (currenciesId is not null)
@@ -26,7 +26,7 @@
                 transactions = transactions.Where(s => statuses.Contains(s.Status));
             if (usersId is not null)
                 transactions = transactions.Where(t => usersId.Contains(t.UserId));
-            if (byDate)
+            if (orderByDate)
                 transactions = transactions.OrderByDescending(t => t.CreatedOn);
 
             return transactions.ToList();

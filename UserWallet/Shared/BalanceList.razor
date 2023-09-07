@@ -1,4 +1,6 @@
-﻿<div class="balance-list-container">
+﻿@inject ICurrencyService CurrencyService
+
+<div class="balance-list-container">
     <table>
         <tr>
             <th>Currency</th>
@@ -6,12 +8,16 @@
             <th>Usd amount</th>
             <th>Actions</th>
         </tr>
-        @{
-            @ChildContent
+        @foreach (var currency in CurrencyService.GetCurrencies().Select(c => c.Id))
+        {
+            <BalanceListItem Currency="@currency" 
+                     Amount="Balances.ContainsKey(currency) ? Balances[currency].Amount : 0"
+                     UsdAmount="Balances.ContainsKey(currency) ? Balances[currency].UsdAmount : 0" />
+
         }
     </table>
 </div>
 
 @code {
-    [Parameter] public RenderFragment? ChildContent{ get; set; }
+    [Parameter] public IDictionary<string, BalanceDTO> Balances { get; set; } = new Dictionary<string, BalanceDTO>();
 }
