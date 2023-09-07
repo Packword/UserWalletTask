@@ -1,4 +1,5 @@
 ﻿@inject ITransactionService TransactionService
+@inject ICurrencyService CurrencyService
 
 @if (transactions is null)
 {
@@ -15,15 +16,12 @@ else
         </select>
         @if (!IsCurrencyTransactions)
         {
-            @if (CurrenciesId is not null)
-            {
-                <select @bind="@chosenCurrencies" multiple>
-                    @foreach (string currency in CurrenciesId)
-                    {
-                        <option value="@currency">@currency</option>
-                    }
-                </select>
-            }
+            <select @bind="@chosenCurrencies" multiple>
+                @foreach (string currency in (CurrenciesId ?? CurrencyService.GetCurrencies().Select(c => c.Id)))
+                {
+                    <option value="@currency">@currency</option>
+                }
+            </select>
             <AuthorizeView Roles="Admin">
                 <input type="number" class="form-control w-25" placeholder="UserId..." min="0" @bind-value="@chosenUserId"/>
             </AuthorizeView>
@@ -43,9 +41,11 @@ else
 
 
 @code {
-    [Parameter] public IEnumerable<int>? UsersId { get; set; }
-    [Parameter] public IEnumerable<string>? CurrenciesId { get; set; }
-    [Parameter] public bool IsCurrencyTransactions { get; set; }
+    [Parameter] public IEnumerable<int>? UsersId { get; set; } = null;
+    [Parameter] public IEnumerable<string>? CurrenciesId { get; set; } = null;
+    [Parameter] public bool IsAllCurrencies { get; set; } = true;
+    [Parameter] public bool IsAllUsers { get; set; } = true;
+    [Parameter] public bool IsCurrencyTransactions { get; set; } = false;
 
     private int? chosenUserId;
     private DepositStatus[] chosenStatuses = Array.Empty<DepositStatus>();
@@ -56,13 +56,18 @@ else
     {
         base.OnInitialized();
 
-        transactions = TransactionService.GetDepositsWithFiltration(UsersId, CurrenciesId, null, true);
+        if (UsersId is not null) 
+            IsAllUsers = false;
+        if (CurrenciesId is not null || IsCurrencyTransactions)
+            IsAllCurrencies = false;
+
+        FilterTransactions();
     }
 
     private void FilterTransactions()
     {
-        transactions = TransactionService.GetDepositsWithFiltration(chosenUserId.HasValue ? new int[] { chosenUserId.Value } : null,
-                                                                    chosenCurrencies.Length != 0 ? chosenCurrencies : null,
+        transactions = TransactionService.GetDepositsWithFiltration(chosenUserId.HasValue ? new int[] { chosenUserId.Value } : (IsAllUsers ? null : UsersId),
+                                                                    chosenCurrencies.Length != 0 ? chosenCurrencies : (IsAllCurrencies ? null : CurrenciesId),
                                                                     chosenStatuses.Length != 0 ? chosenStatuses : null, 
                                                                     true);
     }

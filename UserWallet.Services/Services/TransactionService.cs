@@ -27,7 +27,7 @@
             if (usersId is not null)
                 transactions = transactions.Where(t => usersId.Contains(t.UserId));
             if (byDate)
-                transactions.OrderBy(t => t.CreatedOn);
+                transactions = transactions.OrderByDescending(t => t.CreatedOn);
 
             return transactions.ToList();
         }

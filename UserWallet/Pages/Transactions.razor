@@ -1,8 +1,6 @@
 ﻿@page "/transactions"
 
 @inject UserStore UserStore
-@inject IUserService UserService
-@inject ICurrencyService CurrencyService
 
 @attribute [Authorize]
 
@@ -10,22 +8,10 @@
 
 <h3>Transactions</h3>
 
-<TransactionsPage UsersId="usersId" CurrenciesId="currenciesId" />
+<AuthorizeView Roles="Admin">
+    <TransactionsPage/>
+</AuthorizeView>
 
-@code{
-    private List<int>? usersId = null;
-    private List<string>? currenciesId = null;
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-
-        currenciesId = CurrencyService.GetCurrencies().Select(c => c.Id).ToList();
-
-        if (UserStore.CurrentUser.IsInRole("Admin"))
-            usersId = UserService.GetUsers().Select(u => u.Id).ToList();
-
-        if (UserStore.CurrentUser.IsInRole("User"))
-            usersId = new List<int>() { UserStore.CurrentUser.GetId()!.Value };
-    }
-}
+<AuthorizeView Roles="User">
+    <TransactionsPage UsersId="new List<int>() { UserStore.CurrentUser.GetId()!.Value }"/>
+</AuthorizeView>
