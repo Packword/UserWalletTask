@@ -45,7 +45,7 @@ else
     [Parameter] public IEnumerable<string>? CurrenciesId { get; set; } = null;
     [Parameter] public bool IsAllCurrencies { get; set; } = true;
     [Parameter] public bool IsAllUsers { get; set; } = true;
-    [Parameter] public bool IsCurrencyTransactions { get; set; } = false;
+    [Parameter] public bool IsCurrencyTransactions { get; set; }
 
     private int? chosenUserId;
     private DepositStatus[] chosenStatuses = Array.Empty<DepositStatus>();
