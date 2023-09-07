@@ -8,10 +8,10 @@
 
 <h3>Transactions</h3>
 
-<AuthorizeView Roles="Admin">
+<AuthorizeView Roles="@UsersRole.ADMIN">
     <TransactionsPage/>
 </AuthorizeView>
 
-<AuthorizeView Roles="User">
+<AuthorizeView Roles="@UsersRole.USER">
     <TransactionsPage UsersId="new[] { UserStore.CurrentUser.GetId()!.Value }"/>
 </AuthorizeView>

@@ -19,7 +19,7 @@
     }
     @if(showUsersFilter)
     {
-        <AuthorizeView Roles="Admin">
+        <AuthorizeView Roles="@UsersRole.ADMIN">
             <input type="number" class="form-control w-25" placeholder="UserId..." min="0" @bind-value="@chosenUserId"/>
         </AuthorizeView>
     }

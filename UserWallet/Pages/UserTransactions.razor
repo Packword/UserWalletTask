@@ -1,28 +1,15 @@
 ﻿@page "/transactions/{userId:int}"
 
-@inject ICurrencyService CurrencyService
-
 @attribute [Authorize(Roles = UsersRole.ADMIN)]
 
 <PageTitle>Transactions</PageTitle>
 
 <h3>Transactions</h3>
 
-<TransactionsPage UsersId="usersId" CurrenciesId="currenciesId" WithFilterByUser="false"/>
+<TransactionsPage UsersId="new[] { UserId }" />
 
 <BackButton />
 
 @code {
     [Parameter] public int UserId { get; set; }
-
-    private List<int>? usersId = null;
-    private List<string>? currenciesId = null;
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-
-        usersId = new List<int>() { UserId };
-        currenciesId = CurrencyService.GetCurrencies()?.Select(c => c.Id).ToList();
-    }
 }

@@ -1,9 +1,9 @@
 ﻿@inject IUserService UserService
 @if (user is not null)
 {
-    @user.Username
+    @user.Username <br />
 
-@(user.IsBlocked ? "Blocked" : "Unblocked")
+    @userStatus
 
     <BalancePage UserId="@UserId" />
 }
@@ -17,11 +17,14 @@ else
     [Parameter] public int UserId { get; set; }
 
     private User? user;
+    private string? userStatus;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
 
         user = UserService.GetUserById(UserId);
+        if(user is not null)
+            userStatus = user.IsBlocked ? "Blocked" : "Unblocked";
     }
 }

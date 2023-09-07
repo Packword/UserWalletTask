@@ -1,20 +1,20 @@
-﻿<tr>
+﻿@inject NavigationManager Navigation
+
+<tr>
     <td>@Currency</td>
     <td>@String.Format("{0: 0.000}", Amount)</td>
     <td>@String.Format("{0: 0.000}", UsdAmount)</td>
     <td>
-        <AuthorizeView Roles="User">
+        <AuthorizeView Roles="@UsersRole.USER">
             <button class="btn btn-primary" @onclick="@ModalShow">Deposit</button>
             @if (showDepositModal)
             {
                 <DepositModal OnDepositCreated="@HandleOnDepositCreated" CurrencyId="@Currency" />
             }
         </AuthorizeView>
-        <!--
-        <AuthorizeView Roles="Admin">
-            <button class="btn btn-primary">Transactions</button>
+        <AuthorizeView Roles="@UsersRole.ADMIN">
+            <button @onclick="GoToCurrencyTransactions" class="btn btn-primary">Transactions</button>
         </AuthorizeView>
-        -->
     </td>
 </tr>
 
@@ -22,14 +22,12 @@
     [Parameter] public string Currency { get; set; }
     [Parameter] public decimal Amount { get; set; }
     [Parameter] public decimal UsdAmount { get; set; } 
+    [Parameter] public int UserId { get; set; }
 
     private bool showDepositModal;
 
     private void GoToCurrencyTransactions()
-    {
-        if(UserId is not null)
-            Navigation.NavigateTo($"/transactions/{UserId}/{Currency}");
-    }
+        => Navigation.NavigateTo($"/transactions/{UserId}/{Currency}");
 
     private void ModalShow()
         => showDepositModal = true;

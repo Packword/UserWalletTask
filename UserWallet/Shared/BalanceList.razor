@@ -11,13 +11,14 @@
         @foreach (var currency in CurrencyService.GetCurrencies().Select(c => c.Id))
         {
             <BalanceListItem Currency="@currency" 
-                     Amount="Balances.ContainsKey(currency) ? Balances[currency].Amount : 0"
-                     UsdAmount="Balances.ContainsKey(currency) ? Balances[currency].UsdAmount : 0" />
-
+                             Amount="Balances.ContainsKey(currency) ? Balances[currency].Amount : 0"
+                             UsdAmount="Balances.ContainsKey(currency) ? Balances[currency].UsdAmount : 0" 
+                             UserId="UserId"/>
         }
     </table>
 </div>
 
 @code {
     [Parameter] public IDictionary<string, BalanceDTO> Balances { get; set; } = new Dictionary<string, BalanceDTO>();
+    [Parameter] public int UserId { get; set; }
 }

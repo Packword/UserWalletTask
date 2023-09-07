@@ -5,12 +5,14 @@
             <th>Usd balance</th>
             <th>Buttons</th>
         </tr>
-        @{
-            @ChildContent
+        @foreach (var user in (Users ?? Array.Empty<User>()))
+        {
+            <UserListItem Model="@user" />
         }
+        
     </table>
 </div>
 
 @code {
-    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public IEnumerable<User>? Users { get; set; }
 }

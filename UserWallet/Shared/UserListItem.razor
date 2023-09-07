@@ -2,19 +2,19 @@
 @inject NavigationManager Navigation
 
 <tr>
-    <td>@UserModel.Username</td>
+    <td>@Model.Username</td>
     <td>@String.Format("{0: 0.000}", totalUsd)</td>
     <td>
-        <button class="btn btn-primary" @onclick="() => GoToPersonalPage(UserModel.Id)">Show</button>
-        @if (UserModel.Role is UsersRole.USER)
+        <button class="btn btn-primary" @onclick="() => GoToPersonalPage(Model.Id)">Show</button>
+        @if (Model.Role is UsersRole.USER)
         {
-           <button class="btn btn-secondary" @onclick="() => GoToTransactions(UserModel.Id)">Transactions</button>
+           <button class="btn btn-secondary" @onclick="() => GoToTransactions(Model.Id)">Transactions</button>
         }
     </td>
 </tr>
 
 @code {
-    [Parameter] public User UserModel { get; set; }
+    [Parameter] public User Model { get; set; }
 
     private decimal totalUsd = 0;
 
@@ -34,7 +34,7 @@
 
     private decimal CalculateTotalUsd()
     {
-        var userBalances = UserBalanceService.GetUserBalances(UserModel.Id).Balances;
+        var userBalances = UserBalanceService.GetUserBalances(Model.Id).Balances;
         var balances = UserBalanceService.ConvertToBalanceDTO(userBalances);
         return balances?.Values.Sum(b => b.UsdAmount) ?? 0;
     }
