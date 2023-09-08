@@ -1,0 +1,42 @@
+﻿@page "/users/{userId:int}"
+
+@inject IUserService UserService
+
+@attribute [Authorize(Roles = UsersRole.ADMIN)]
+
+<PageTitle>Personal page</PageTitle>
+
+@if (user is not null)
+{
+    @user.Username
+    <br />
+
+    @userStatus
+
+    @if (user.Role != UsersRole.ADMIN)
+    {
+        <BalancePage UserId="@UserId" />
+    }
+}
+else
+{
+    <h3>User not found</h3>
+}
+
+<BackButton />
+
+@code {
+    [Parameter] public int UserId { get; set; }
+
+    private User? user;
+    private string? userStatus;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        user = UserService.GetUserById(UserId);
+        if (user is not null)
+            userStatus = user.IsBlocked ? "Blocked" : "Unblocked";
+    }
+}

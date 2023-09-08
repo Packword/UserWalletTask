@@ -55,6 +55,9 @@
         public User? GetUserById(int userId)
             => _db.Users.FirstOrDefault(u => u.Id == userId);
 
+        public User? GetUserByName(string? userName)
+            => _db.Users.FirstOrDefault(u => u.Username == userName);
+
         public User? GetUserByNameAndPassword(string username, string password)
             => _db.Users.FirstOrDefault(u => u.Username == username && u.Password == password);
     }

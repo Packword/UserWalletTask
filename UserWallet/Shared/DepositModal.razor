@@ -11,22 +11,22 @@ else if(currentCurrency.IsAvailable == false){
    <p>Currency is unavailable</p>
 }
 else{
-    <input type="number" step=".1" min="0.1" max="100" placeholder="Amount" @bind-value="Deposit.Amount"/>
+    <input type="number" step=".1" min="0.1" max="100" placeholder="Amount" @bind-value="deposit.Amount"/>
     @switch (currentCurrency.Type)
     {
         case CurrencyType.Fiat:
-            <input type="text" minlength="16" maxlength="16" placeholder="Card number" @bind-value="Deposit.CardNumber"/>
-            <input type="text" minlength="2" maxlength="16" placeholder="Cardholder name" @bind-value="Deposit.CardholderName" />
+            <input type="text" minlength="16" maxlength="16" placeholder="Card number" @bind-value="deposit.CardNumber"/>
+            <input type="text" minlength="2" maxlength="16" placeholder="Cardholder name" @bind-value="deposit.CardholderName" />
             break;
         case CurrencyType.Crypto:
-            <input type="text" minlength="16" maxlength="16" placeholder="Address" @bind-value="Deposit.Address" />
+            <input type="text" minlength="16" maxlength="16" placeholder="Address" @bind-value="deposit.Address" />
             break;
     }
 
     <button class="btn btn-primary" @onclick="CreateDeposit">Deposit</button>
-    @if(ValidationResult is not "")
+    @if(validationResult is not "")
     {
-        <p>@ValidationResult</p>
+        <p>@validationResult</p>
     }
 }
 
@@ -34,8 +34,8 @@ else{
     [Parameter] public string CurrencyId { get; set; }
     [Parameter] public EventCallback<bool> OnDepositCreated { get; set; }
 
-    public DepositDTO Deposit { get; set; } = new DepositDTO();
-    public string ValidationResult { get; set; } = "";
+    private DepositDTO deposit = new DepositDTO();
+    private string validationResult = "";
 
     private List<Currency>? currencies;
     private Currency? currentCurrency;
@@ -48,17 +48,17 @@ else{
         currentCurrency = currencies?.FirstOrDefault(c => c.Id == CurrencyId);
     }
 
-    public void CreateDeposit()
+    private void CreateDeposit()
     {
         var userId = UserStore.CurrentUser.GetId()!.Value;
         (bool Result, string Message) = currentCurrency?.Type switch
         {
-            CurrencyType.Fiat => DepositFiatService.CreateDeposit(userId, Deposit, CurrencyId),
-            CurrencyType.Crypto => DepositCryptoService.CreateDeposit(userId, Deposit, CurrencyId),
+            CurrencyType.Fiat => DepositFiatService.CreateDeposit(userId, deposit, CurrencyId),
+            CurrencyType.Crypto => DepositCryptoService.CreateDeposit(userId, deposit, CurrencyId),
             _ => (false, "Unknown type"),
         };
         if (!Result)
-            ValidationResult = Message;
+            validationResult = Message;
         else
             OnDepositCreated.InvokeAsync();
     }

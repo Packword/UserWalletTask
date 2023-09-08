@@ -1,0 +1,8 @@
+﻿@page "/users"
+
+@attribute [Authorize(Roles = UsersRole.ADMIN)]
+
+<PageTitle>Users</PageTitle>
+
+<h3> Users </h3>
+<UsersPage/>

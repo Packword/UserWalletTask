@@ -2,9 +2,11 @@
 @inject UserStore UserStore
 
 <p>Total Usd @String.Format("{0: 0.000}", totalUsd)</p>
-<BalanceList Balances="balances" />
+<BalanceList UserId="@UserId" Balances="balances" />
 
 @code {
+    [Parameter] public int UserId { get; set; }
+
     private Dictionary<string, BalanceDTO>? balances;
     private decimal totalUsd;
 
@@ -12,9 +14,7 @@
     {
         base.OnInitialized();
 
-        var userId = UserStore.CurrentUser.GetId()!.Value;
-
-        var userBalances = UserBalanceService.GetUserBalances(userId).Balances;
+        var userBalances = UserBalanceService.GetUserBalances(UserId).Balances;
         balances = UserBalanceService.ConvertToBalanceDTO(userBalances);
         totalUsd = balances?.Values.Sum(v => v.UsdAmount) ?? 0;
     }

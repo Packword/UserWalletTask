@@ -1,21 +1,21 @@
 ﻿@using System.Text.Json;
 
-@if (Message is not "")
+@if (message is not "")
 {
-    <p>@((MarkupString)Message)</p>
+    <p>@((MarkupString)message)</p>
 }
 
 @code {
-    private string Message { get; set; } = "";
-
     [Parameter] public HttpResponseMessage Response { get; set; }
     [Parameter] public string? EntityName { get; set; }
+
+    private string message = "";
 
     protected override void OnParametersSet()
     {
         if (Response is not null)
         {
-            Message = Response.StatusCode switch
+            message = Response.StatusCode switch
             {
                 HttpStatusCode.OK => "",
                 HttpStatusCode.NotFound => $"{EntityName} is not found",
