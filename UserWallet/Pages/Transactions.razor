@@ -1,4 +1,6 @@
 ﻿@page "/transactions"
+@page "/transactions/{userId:int}"
+@page "/transactions/{userId:int}/{currency}"
 
 @inject UserStore UserStore
 
@@ -9,9 +11,15 @@
 <h3>Transactions</h3>
 
 <AuthorizeView Roles="@UsersRole.ADMIN">
-    <TransactionsPage/>
+    <TransactionsPage UsersId="@(UserId.HasValue ? new[] {UserId.Value} : null)"
+                      CurrenciesId="@(string.IsNullOrEmpty(Currency) ? null : new[] {Currency})" />
 </AuthorizeView>
 
 <AuthorizeView Roles="@UsersRole.USER">
     <TransactionsPage UsersId="new[] { UserStore.CurrentUser.GetId()!.Value }"/>
 </AuthorizeView>
+
+@code{
+    [Parameter] public int? UserId { get; set; }
+    [Parameter] public string? Currency { get; set; }
+}

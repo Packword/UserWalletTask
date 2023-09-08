@@ -34,8 +34,8 @@ else{
     [Parameter] public string CurrencyId { get; set; }
     [Parameter] public EventCallback<bool> OnDepositCreated { get; set; }
 
-    private DepositDTO deposit { get; set; } = new DepositDTO();
-    private string validationResult { get; set; } = "";
+    private DepositDTO deposit = new DepositDTO();
+    private string validationResult = "";
 
     private List<Currency>? currencies;
     private Currency? currentCurrency;
