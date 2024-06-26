@@ -1,0 +1,36 @@
+﻿@inject IUserService UserService
+
+@if(users is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <input type="text" class="form-control w-25" placeholder="Username..." min="0" @bind-value="@chosenUsername" />
+    <button class="btn btn-primary" @onclick="() => FilterUsers(chosenUsername)">Search</button>
+    <UsersList Users="@users"/>
+}
+
+@code {
+    private IEnumerable<User> users = Array.Empty<User>();
+    private string? chosenUsername;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        users = GetUsers();
+    }
+
+    private void FilterUsers(string username)
+    {
+        if (!string.IsNullOrEmpty(chosenUsername))
+        {
+            var chosenUser = UserService.GetUserByName(chosenUsername);
+            users = chosenUser != null ? new[] { chosenUser } : (users.Count() <= 1 ? GetUsers() : users);
+        }
+    }
+
+    private IEnumerable<User> GetUsers()
+        => UserService.GetUsers().OrderBy(u => u.Username);
+}
